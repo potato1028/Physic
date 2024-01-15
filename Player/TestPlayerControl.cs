@@ -9,12 +9,12 @@ public class TestPlayerControl : MonoBehaviour {
     public float jumpForce = 10f;
     public float hitDelayTime = 2.0f;
     public float moveDelayTime = 1.0f;
-    //
-    public int zForce;
-    public float zChargeTime = 3.0f;
-    public float chargeRate = 3.0f;
     public float zDelayTime = 0.3f;
-    private float currentZChargeTime;
+    //
+    public float currentZChargeForce;
+    public float maxZChargeForce = 3.0f;
+    public float ZChargeSpeed = 2.0f;
+    public int zForce;
 
     [Header("Player_Component")]
     public Rigidbody2D rb;
@@ -32,19 +32,14 @@ public class TestPlayerControl : MonoBehaviour {
     public bool isDashing = false;
 
     [Header("Player_Item")]
-    public GameObject Bullet;
-    public Slider bulletBar;
-
-    void Start() {
-        bulletBar.onValueChanged.AddListener(UpdateChargeTime);
-    }
+    public GameObject zBullet_prefab;
+    public Text zForceText;
 
     void Update() {
-        if(isMoveAllow) {
-            Jump();
-            Flip();
-            Centrifugal_Force();
-        }
+        Jump();
+        Flip();
+        Centrifugal_Force();
+        UpdateText();
     }
 
     void FixedUpdate() {
@@ -78,21 +73,25 @@ public class TestPlayerControl : MonoBehaviour {
         isAttachedToWall = Physics2D.Raycast(wallRay, Vector2.right * transform.localScale.x, 0.51f, wallLayer);
     }
 
+    void UpdateText() {
+        zForceText.text = "zForce" + (int)(currentZChargeForce + 1f);
+    }
+
     #region PlayerMove
 
     void Jump() {
-        if(isGrounded && Input.GetButtonDown("Jump")) {
+        if(isGrounded && Input.GetButtonDown("Jump") && isMoveAllow) {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
     }
 
     void Flip() {
-        if(horiaontalInput > 0 && !isFacingRight) {
+        if(horiaontalInput > 0 && !isFacingRight && isMoveAllow) {
             Vector3 newScale = transform.localScale;
             newScale.x *= -1;
             transform.localScale = newScale;
         }
-        else if(horiaontalInput < 0 && isFacingRight) {
+        else if(horiaontalInput < 0 && isFacingRight && isMoveAllow) {
             Vector3 newScale = transform.localScale;
             newScale.x *= -1;
             transform.localScale = newScale;
@@ -131,25 +130,23 @@ public class TestPlayerControl : MonoBehaviour {
 
     IEnumerator hitDelay() {
         isHit = true;
-        currentZChargeTime = 0f;
-        bulletBar.value = currentZChargeTime / zChargeTime;
+        isZAllow = false;
+        currentZChargeForce = 0;
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Enemy"), isHit);
 
         yield return new WaitForSeconds(hitDelayTime);
 
         isHit = false;
+        isZAllow = true;
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Enemy"), isHit);
     }
 
     IEnumerator moveDelay() {
         isMoveAllow = false;
-        isZAllow = false;
-        currentZChargeTime = 0f;
     
         yield return new WaitForSeconds(moveDelayTime);
 
         isMoveAllow = true;
-        isZAllow = true;
     }
 
     #endregion
@@ -158,42 +155,35 @@ public class TestPlayerControl : MonoBehaviour {
 
     void Centrifugal_Force() {
         if(Input.GetKey(KeyCode.Z) && isZAllow) {
-            currentZChargeTime += Time.deltaTime * chargeRate;
-            currentZChargeTime = Mathf.Min(currentZChargeTime, zChargeTime);
-
-            bulletBar.value = currentZChargeTime / zChargeTime;
+            currentZChargeForce += Time.deltaTime * ZChargeSpeed;
+            currentZChargeForce = Mathf.Min(currentZChargeForce, maxZChargeForce);
         }
 
-        if(Input.GetKeyUp(KeyCode.Z) && isZAllow) {
-            zForce = (int)(currentZChargeTime + 1f);
+        if(Input.GetKeyUp(KeyCode.Z)) {
+            zForce = (int)(currentZChargeForce + 1f);
             
+
             Debug.Log(zForce);
 
             if(isFacingRight) {
-                GameObject zBullet = Instantiate(Bullet, new Vector2(transform.position.x + 0.4f, transform.position.y), Quaternion.identity);
+                GameObject zBullet = Instantiate(zBullet_prefab, new Vector2(transform.position.x + 0.4f, transform.position.y), Quaternion.identity);
             }
             else {
-                GameObject zBullet = Instantiate(Bullet, new Vector2(transform.position.x - 0.4f, transform.position.y), Quaternion.identity);
+                GameObject zBullet = Instantiate(zBullet_prefab, new Vector2(transform.position.x - 0.4f, transform.position.y), Quaternion.identity);
             }
-
-            currentZChargeTime = 0f;
 
             StartCoroutine(zDelay());
         }
     }
 
-    void UpdateChargeTime(float value) {
-        currentZChargeTime = value * zChargeTime;
-    }
-
     IEnumerator zDelay() {
-            isZAllow = false;
-            bulletBar.value = currentZChargeTime / zChargeTime;
+        isZAllow = false;
+        currentZChargeForce = 0;
 
-            yield return new WaitForSeconds(zDelayTime);
+        yield return new WaitForSeconds(zDelayTime);
 
-            isZAllow = true;
-        }
+        isZAllow = true;
+    }
 
     #endregion
 }
