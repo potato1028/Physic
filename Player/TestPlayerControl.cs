@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 public class TestPlayerControl : MonoBehaviour {
     [Header("Player_Status")]
     public float horiaontalInput;
@@ -9,11 +10,11 @@ public class TestPlayerControl : MonoBehaviour {
     public float hitDelayTime = 2.0f;
     public float moveDelayTime = 1.0f;
     //
-    public int xForce;
-    public float xChargeTime = 3.0f;
-    public float chargeRate = 1.0f;
-    public float xDelayTime = 0.3f;
-    private float currentChargeTime;
+    public int zForce;
+    public float zChargeTime = 3.0f;
+    public float chargeRate = 3.0f;
+    public float zDelayTime = 0.3f;
+    private float currentZChargeTime;
 
     [Header("Player_Component")]
     public Rigidbody2D rb;
@@ -23,7 +24,7 @@ public class TestPlayerControl : MonoBehaviour {
     [Header("Player_Condition")]
     public bool isHit = false;
     public bool isMoveAllow = true;
-    public bool isXAllow = true;
+    public bool isZAllow = true;
     public bool[] isGroundeds = new bool[3];
     public bool isGrounded;
     public bool isFacingRight;
@@ -32,6 +33,11 @@ public class TestPlayerControl : MonoBehaviour {
 
     [Header("Player_Item")]
     public GameObject Bullet;
+    public Slider bulletBar;
+
+    void Start() {
+        bulletBar.onValueChanged.AddListener(UpdateChargeTime);
+    }
 
     void Update() {
         if(isMoveAllow) {
@@ -104,7 +110,11 @@ public class TestPlayerControl : MonoBehaviour {
                 Debug.Log("LexTertia");
                 rb.velocity = new Vector2(rb.velocity.x, 20f);
                 break;
-            
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D other) {
+        switch(LayerMask.LayerToName(other.gameObject.layer)) {    
             case "Enemy" :
                 Debug.Log("Enemy");
                 if(other.transform.position.x < this.transform.position.x) {
@@ -121,6 +131,8 @@ public class TestPlayerControl : MonoBehaviour {
 
     IEnumerator hitDelay() {
         isHit = true;
+        currentZChargeTime = 0f;
+        bulletBar.value = currentZChargeTime / zChargeTime;
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Enemy"), isHit);
 
         yield return new WaitForSeconds(hitDelayTime);
@@ -131,13 +143,13 @@ public class TestPlayerControl : MonoBehaviour {
 
     IEnumerator moveDelay() {
         isMoveAllow = false;
-        isXAllow = false;
-        currentChargeTime = 0f;
+        isZAllow = false;
+        currentZChargeTime = 0f;
     
         yield return new WaitForSeconds(moveDelayTime);
 
         isMoveAllow = true;
-        isXAllow = true;
+        isZAllow = true;
     }
 
     #endregion
@@ -145,36 +157,43 @@ public class TestPlayerControl : MonoBehaviour {
     #region PlayerSkill
 
     void Centrifugal_Force() {
-        if(Input.GetKey(KeyCode.Z) && isXAllow) {
-            currentChargeTime += Time.deltaTime * chargeRate;
-            currentChargeTime = Mathf.Min(currentChargeTime, xChargeTime);
+        if(Input.GetKey(KeyCode.Z) && isZAllow) {
+            currentZChargeTime += Time.deltaTime * chargeRate;
+            currentZChargeTime = Mathf.Min(currentZChargeTime, zChargeTime);
+
+            bulletBar.value = currentZChargeTime / zChargeTime;
         }
 
-        if(Input.GetKeyUp(KeyCode.Z) && isXAllow) {
-            xForce = (int)(currentChargeTime + 1f);
+        if(Input.GetKeyUp(KeyCode.Z) && isZAllow) {
+            zForce = (int)(currentZChargeTime + 1f);
             
-            Debug.Log(xForce);
+            Debug.Log(zForce);
 
             if(isFacingRight) {
-                GameObject xBullet = Instantiate(Bullet, new Vector2(transform.position.x + 0.4f, transform.position.y), Quaternion.identity);
+                GameObject zBullet = Instantiate(Bullet, new Vector2(transform.position.x + 0.4f, transform.position.y), Quaternion.identity);
             }
             else {
-                GameObject xBullet = Instantiate(Bullet, new Vector2(transform.position.x - 0.4f, transform.position.y), Quaternion.identity);
+                GameObject zBullet = Instantiate(Bullet, new Vector2(transform.position.x - 0.4f, transform.position.y), Quaternion.identity);
             }
 
-            currentChargeTime = 0f;
+            currentZChargeTime = 0f;
 
-            StartCoroutine(xDelay());
-        }
-
-        IEnumerator xDelay() {
-            isXAllow = false;
-
-            yield return new WaitForSeconds(xDelayTime);
-
-            isXAllow = true;
+            StartCoroutine(zDelay());
         }
     }
+
+    void UpdateChargeTime(float value) {
+        currentZChargeTime = value * zChargeTime;
+    }
+
+    IEnumerator zDelay() {
+            isZAllow = false;
+            bulletBar.value = currentZChargeTime / zChargeTime;
+
+            yield return new WaitForSeconds(zDelayTime);
+
+            isZAllow = true;
+        }
 
     #endregion
 }
