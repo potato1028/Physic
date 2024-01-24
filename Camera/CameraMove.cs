@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 public class Cameramove : MonoBehaviour {
+    [Header("Object")]
     public Transform target;
+
     public float smoothSpeed = 1.0f;
 
     void LateUpdate() {

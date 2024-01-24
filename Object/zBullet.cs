@@ -2,10 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 public class zBullet : MonoBehaviour {
+    [Header("Status")]
     public float bulletSpeed = 10f;
     public float zForce;
-    public Rigidbody2D rb;
+
+    [Header("Object")]
     public GameObject Player;
+
+    [Header("Component")]
+    public Rigidbody2D rb;
     public TestPlayerControl playerControl;
 
     void Awake() {

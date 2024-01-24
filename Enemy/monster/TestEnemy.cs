@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class TestEnemy : MonoBehaviour {
+    [Header("Status")]
     public float hp = 10;
+
+    [Header("Component")]
     public Rigidbody2D rb;
 
     void OnCollisionEnter2D(Collision2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
             case "Player" :
-                if((rb.constraints & RigidbodyConstraints2D.FreezePositionX) == 0) {
-                    rb.constraints |= RigidbodyConstraints2D.FreezePositionX;
-                }
+                rb.constraints |= RigidbodyConstraints2D.FreezePositionX;
                 Invoke("UnlockX", 0.01f);
                 break;
         }

@@ -18,8 +18,14 @@ public class TestPlayerControl : MonoBehaviour {
 
     [Header("Player_Component")]
     public Rigidbody2D rb;
+    public SpriteRenderer sp;
+
+    [Header("Layer")]
     public LayerMask groundLayer;
     public LayerMask wallLayer;
+    public LayerMask springLayer;
+    public LayerMask enemyLayer;
+    public LayerMask enemyBulletLayer;
 
     [Header("Player_Condition")]
     public bool isHit = false;
@@ -29,7 +35,6 @@ public class TestPlayerControl : MonoBehaviour {
     public bool isGrounded;
     public bool isFacingRight;
     public bool isAttachedToWall;
-    public bool isDashing = false;
 
     [Header("Player_Item")]
     public GameObject zBullet_prefab;
@@ -106,47 +111,72 @@ public class TestPlayerControl : MonoBehaviour {
     void OnTriggerEnter2D(Collider2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {
             case "LexTertia" :
-                Debug.Log("LexTertia");
-                rb.velocity = new Vector2(rb.velocity.x, 20f);
+                if(isMoveAllow) {
+                    Debug.Log("LexTertia");
+                    rb.velocity = new Vector2(rb.velocity.x, 20f);
+                }
                 break;
-        }
+
+            case "enemyBullet" :
+                if(!isHit) {
+                    Debug.Log("enemyBullet");
+                    if(other.transform.position.x < this.transform.position.x) {
+                        rb.velocity = new Vector2(7f, 4.5f);
+                    }
+                    else {
+                        rb.velocity = new Vector2(-7f, 4.5f);
+                    }
+                    StartCoroutine(hitDelay());
+                    StartCoroutine(moveDelay());
+                }
+                break;
+            }
+        
     }
 
     void OnCollisionEnter2D(Collision2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
             case "Enemy" :
-                Debug.Log("Enemy");
-                if(other.transform.position.x < this.transform.position.x) {
-                    rb.velocity = new Vector2(7f, 4.5f);
+                if(!isHit) {
+                    Debug.Log("Enemy");
+                    if(other.transform.position.x < this.transform.position.x) {
+                        rb.velocity = new Vector2(7f, 4.5f);
+                    }
+                    else {
+                        rb.velocity = new Vector2(-7f, 4.5f);
+                    }
+                    StartCoroutine(hitDelay());
+                    StartCoroutine(moveDelay());
                 }
-                else {
-                    rb.velocity = new Vector2(-7f, 4.5f);
-                }
-                StartCoroutine(hitDelay());
-                StartCoroutine(moveDelay());
                 break;
-        }
+            }
     }
 
     IEnumerator hitDelay() {
         isHit = true;
-        isZAllow = false;
-        currentZChargeForce = 0;
-        Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Enemy"), isHit);
+
+        Color color = sp.color;
+        color.a = 0.5f;
+        sp.color = color;
 
         yield return new WaitForSeconds(hitDelayTime);
 
         isHit = false;
-        isZAllow = true;
-        Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Enemy"), isHit);
+
+        color = sp.color;
+        color.a = 1.0f;
+        sp.color = color;
     }
 
     IEnumerator moveDelay() {
         isMoveAllow = false;
+        isZAllow = false;
+        currentZChargeForce = 0;
     
         yield return new WaitForSeconds(moveDelayTime);
 
         isMoveAllow = true;
+        isZAllow = true;
     }
 
     #endregion
@@ -162,7 +192,6 @@ public class TestPlayerControl : MonoBehaviour {
         if(Input.GetKeyUp(KeyCode.Z)) {
             zForce = (int)(currentZChargeForce + 1f);
             
-
             Debug.Log(zForce);
 
             if(isFacingRight) {
