@@ -7,9 +7,11 @@ public class TestPlayerControl : MonoBehaviour {
     public float horiaontalInput;
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
+    //
     public float hitDelayTime = 2.0f;
     public float moveDelayTime = 1.0f;
-    public float zDelayTime = 0.3f;
+    public float zDelayTime = 1.0f;
+    public float frictionDelayTime = 0.5f;
     //
     public float currentZChargeForce;
     public float maxZChargeForce = 3.0f;
@@ -19,6 +21,7 @@ public class TestPlayerControl : MonoBehaviour {
     [Header("Player_Component")]
     public Rigidbody2D rb;
     public SpriteRenderer sp;
+    public CapsuleCollider2D capsule2D;
 
     [Header("Layer")]
     public LayerMask groundLayer;
@@ -29,21 +32,36 @@ public class TestPlayerControl : MonoBehaviour {
 
     [Header("Player_Condition")]
     public bool isHit = false;
-    public bool isMoveAllow = true;
-    public bool isZAllow = true;
+    public bool isFriction = false;
     public bool[] isGroundeds = new bool[3];
     public bool isGrounded;
     public bool isFacingRight;
     public bool isAttachedToWall;
+    //
+    public bool isMoveAllow = true;
+    public bool isZAllow = true;
+    public bool isFrictionAllow = true;
+    //
+    public bool allowDetectionEnemies = true;
+    public bool allowDetectionObjects = true;
 
     [Header("Player_Item")]
     public GameObject zBullet_prefab;
     public Text zForceText;
 
+    [Header("RayCast")]
+    RaycastHit2D[] groundHits = new RaycastHit2D[3];
+    Vector2 groundRay;
+    Vector2 wallRay;
+
+
     void Update() {
         Jump();
         Flip();
+
         Centrifugal_Force();
+        Dry_Friction();
+
         UpdateText();
     }
 
@@ -60,9 +78,8 @@ public class TestPlayerControl : MonoBehaviour {
         //isGround
         float groundRayThickness = -0.4f;
 
-        RaycastHit2D[] groundHits = new RaycastHit2D[3];
         for(int i = 0; i < 3; i++) {
-            Vector2 groundRay = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
+            groundRay = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
             isGroundeds[i] = Physics2D.Raycast(groundRay, Vector2.down, 1.01f, groundLayer);
             if(isGroundeds[i]) {
                 isGrounded = true;
@@ -74,8 +91,8 @@ public class TestPlayerControl : MonoBehaviour {
             groundRayThickness += 0.4f;
         }
         
-        Vector2 wallRay = new Vector2(transform.position.x, transform.position.y - 1.0f);
-        isAttachedToWall = Physics2D.Raycast(wallRay, Vector2.right * transform.localScale.x, 0.51f, wallLayer);
+        wallRay = new Vector2(transform.position.x, transform.position.y - 1.0f);
+        isAttachedToWall = Physics2D.Raycast(wallRay, Vector2.right * transform.localScale.x, 0.51f, wallLayer);        
     }
 
     void UpdateText() {
@@ -113,21 +130,28 @@ public class TestPlayerControl : MonoBehaviour {
             case "LexTertia" :
                 if(isMoveAllow) {
                     Debug.Log("LexTertia");
-                    rb.velocity = new Vector2(rb.velocity.x, 20f);
+                    if(allowDetectionObjects) {
+                        rb.velocity = new Vector2(rb.velocity.x, 20f);
+                    }
                 }
                 break;
 
             case "enemyBullet" :
-                if(!isHit) {
+                if(!isHit && !isFriction) {
                     Debug.Log("enemyBullet");
-                    if(other.transform.position.x < this.transform.position.x) {
-                        rb.velocity = new Vector2(7f, 4.5f);
+                    if(allowDetectionEnemies) {
+                        if(other.transform.position.x < this.transform.position.x) {
+                            rb.velocity = new Vector2(7f, 4.5f);
+                        }
+                        else {
+                            rb.velocity = new Vector2(-7f, 4.5f);
+                        }
+                        StartCoroutine(hitDelay());
+                        StartCoroutine(moveDelay());
                     }
-                    else {
-                        rb.velocity = new Vector2(-7f, 4.5f);
-                    }
-                    StartCoroutine(hitDelay());
-                    StartCoroutine(moveDelay());
+                }
+                else if(isFriction) {
+                    Debug.Log("Dry_Friction");
                 }
                 break;
             }
@@ -137,16 +161,44 @@ public class TestPlayerControl : MonoBehaviour {
     void OnCollisionEnter2D(Collision2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
             case "Enemy" :
-                if(!isHit) {
+                if(!isHit && !isFriction) {
                     Debug.Log("Enemy");
-                    if(other.transform.position.x < this.transform.position.x) {
-                        rb.velocity = new Vector2(7f, 4.5f);
+                    if(allowDetectionEnemies) {
+                        if(other.transform.position.x < this.transform.position.x) {
+                            rb.velocity = new Vector2(7f, 4.5f);
+                        }
+                        else {
+                            rb.velocity = new Vector2(-7f, 4.5f);
+                        }
+                        StartCoroutine(hitDelay());
+                        StartCoroutine(moveDelay());
                     }
-                    else {
-                        rb.velocity = new Vector2(-7f, 4.5f);
+                }
+                else if(isFriction) {
+                    Debug.Log("Dry_Friction");
+                }
+                break;
+            }
+    }
+
+    void OnCollisionStay2D(Collision2D other) {
+        switch(LayerMask.LayerToName(other.gameObject.layer)) {    
+            case "Enemy" :
+                if(!isHit && !isFriction) {
+                    Debug.Log("Enemy");
+                    if(allowDetectionEnemies) {
+                        if(other.transform.position.x < this.transform.position.x) {
+                            rb.velocity = new Vector2(7f, 4.5f);
+                        }
+                        else {
+                            rb.velocity = new Vector2(-7f, 4.5f);
+                        }
+                        StartCoroutine(hitDelay());
+                        StartCoroutine(moveDelay());
                     }
-                    StartCoroutine(hitDelay());
-                    StartCoroutine(moveDelay());
+                }
+                else if(isFriction) {
+                    Debug.Log("Dry_Friction");
                 }
                 break;
             }
@@ -154,6 +206,7 @@ public class TestPlayerControl : MonoBehaviour {
 
     IEnumerator hitDelay() {
         isHit = true;
+        allowDetectionEnemies = false;
 
         Color color = sp.color;
         color.a = 0.5f;
@@ -162,6 +215,7 @@ public class TestPlayerControl : MonoBehaviour {
         yield return new WaitForSeconds(hitDelayTime);
 
         isHit = false;
+        allowDetectionEnemies = true;
 
         color = sp.color;
         color.a = 1.0f;
@@ -171,12 +225,16 @@ public class TestPlayerControl : MonoBehaviour {
     IEnumerator moveDelay() {
         isMoveAllow = false;
         isZAllow = false;
+        isFrictionAllow = false;
         currentZChargeForce = 0;
+        allowDetectionObjects = false;
     
         yield return new WaitForSeconds(moveDelayTime);
 
         isMoveAllow = true;
         isZAllow = true;
+        isFrictionAllow = true;
+        allowDetectionObjects = true;
     }
 
     #endregion
@@ -205,6 +263,12 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
+    void Dry_Friction() {
+        if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded) {
+            StartCoroutine(frictionDelay());
+        }
+    }
+
     IEnumerator zDelay() {
         isZAllow = false;
         currentZChargeForce = 0;
@@ -212,6 +276,20 @@ public class TestPlayerControl : MonoBehaviour {
         yield return new WaitForSeconds(zDelayTime);
 
         isZAllow = true;
+    }
+
+    IEnumerator frictionDelay() {
+        isFrictionAllow = false;
+        isMoveAllow = false;
+        isFriction = true;
+
+        rb.velocity = new Vector2(0, rb.velocity.y);
+
+        yield return new WaitForSeconds(frictionDelayTime);
+
+        isFrictionAllow = true;
+        isMoveAllow = true;
+        isFriction = false;
     }
 
     #endregion
