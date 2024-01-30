@@ -6,17 +6,19 @@ public class TestEnemy : MonoBehaviour {
     [Header("Status")]
     public float horiaontalInput;
     public float hp = 10;
-    public float moveSpeed = 1.0f;
+    public float moveSpeed = 2.0f;
     public float attckSpeed = 0.8f;
     public float forwardDistance = 3.0f;
     public float backwardDistance = 1.5f;
     public float attackRangeDistance = 0.8f;
     public Vector3 newScale;
     public Vector3 direction;
+    public Vector2 currentPosition;
 
     [Header("Component")]
     public Rigidbody2D rb;
     public SpriteRenderer sp;
+    public BoxCollider2D box2D;
 
     [Header("Layer")]
     public LayerMask playerLayer;
@@ -25,6 +27,7 @@ public class TestEnemy : MonoBehaviour {
     public bool isFacingRight = false;
     public bool isMoveAllow = true;
     public bool isAttackRange = false;
+    public bool isDetectionPlayer = false;
 
     [Header("RayCast")]
     private Ray forwardRay;
@@ -34,15 +37,16 @@ public class TestEnemy : MonoBehaviour {
     private RaycastHit2D backwardHit;
     private RaycastHit2D attackRangeHit;
 
-    [Header("Object")]
-    public GameObject Player;
+    [Header("Floor")]
+    public GameObject moveFloor;
+    public Bounds bFloor;
+
+    void Start() {
+        bFloor = moveFloor.GetComponent<SpriteRenderer>().bounds;
+    }
 
     void Update() {
         DetectionPlayer();
-    }
-
-    void FixedUpdate() {
-    
     }
 
     #region Collider
@@ -65,17 +69,30 @@ public class TestEnemy : MonoBehaviour {
         attackRangeHit = Physics2D.Raycast(attackRangeRay.origin, attackRangeRay.direction, attackRangeDistance, playerLayer);
 
         if(forwardHit.collider) {
-            Roam(forwardHit.collider.gameObject);
+            Follow(forwardHit.collider.gameObject);
+            isDetectionPlayer = true;
+            if(forwardDistance <= 3.0f) {
+                forwardDistance *= 1.5f;
+                backwardDistance *= 1.5f;
+            }
         }
         else if(backwardHit.collider) {
             Flip();
         }
+        else {
+            isDetectionPlayer = false;
+        }
+
+        if(!forwardHit.collider && !isDetectionPlayer) {
+
+            if(forwardDistance > 3.0f) {
+                forwardDistance /= 1.5f;
+                backwardDistance /= 1.5f;
+            }
+        }
         
         if(attackRangeHit.collider) {
             StartCoroutine(Attack());
-        }
-        else {
-            isMoveAllow = true;
         }
     }
 
@@ -111,6 +128,16 @@ public class TestEnemy : MonoBehaviour {
                     Destroy(gameObject);
                 }
                 break;
+
+            case "ShockWave" :
+                if(other.transform.position.x < this.transform.position.x) {
+                    rb.velocity = new Vector2(20f, rb.velocity.y);
+                }
+                else {
+                    rb.velocity = new Vector2(-20f, rb.velocity.y);
+                }
+                break;
+
         }
     }
 
@@ -133,12 +160,15 @@ public class TestEnemy : MonoBehaviour {
         }
     }
     
-    void Roam(GameObject player) {
+    void Follow(GameObject player) {
         if(isMoveAllow) {
-            
             direction = (player.transform.position - this.transform.position).normalized;
             transform.Translate(direction * moveSpeed * Time.deltaTime);
         }
+    }
+
+    void Roam() {
+
     }
 
     #endregion
@@ -147,11 +177,15 @@ public class TestEnemy : MonoBehaviour {
 
     IEnumerator Attack() {
         isMoveAllow = false;
+        Debug.Log("Attack");
 
         yield return new WaitForSeconds(attckSpeed);
 
-        if(Player != null) {
+        if(attackRangeHit.collider != null) {
             StartCoroutine(Attack());
+        }
+        else {
+            isMoveAllow = true;
         }
     }
 

@@ -1,10 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class zBullet : MonoBehaviour {
+public class wave : MonoBehaviour {
     [Header("Status")]
-    public float zSpeed;
-    public float zForce;
+    public float waveSpeed;
 
     [Header("Object")]
     public GameObject Player;
@@ -16,18 +15,17 @@ public class zBullet : MonoBehaviour {
     void Awake() {
         Player = GameObject.FindWithTag("Player");
         playerControl = Player.GetComponent<TestPlayerControl>();
-        zForce = playerControl.zForce;
-        zSpeed = playerControl.zSpeed;
+        waveSpeed = playerControl.waveSpeed;
     }
 
     void Start() {
         if(playerControl.isFacingRight) {
-            rb.velocity = Vector2.right * zSpeed;
+            rb.velocity = Vector2.right * waveSpeed;
         }
         else {
-            rb.velocity = Vector2.left * zSpeed;
+            rb.velocity = Vector2.left * waveSpeed;
         }
-        Destroy(gameObject, 2.0f);
+        Destroy(gameObject, 0.1f);
     }
 
     void OnTriggerEnter2D(Collider2D other) {
