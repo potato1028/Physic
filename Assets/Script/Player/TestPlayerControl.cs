@@ -340,6 +340,14 @@ public class TestPlayerControl : MonoBehaviour {
             StartCoroutine(frictionDelay());
             StartCoroutine(frictionRunning());
         }
+        else if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded && isBlackHoling) {
+            Before_BlackHole();
+
+            Debug.Log("Friction!");
+            StartCoroutine(frictionDelay());
+            StartCoroutine(frictionRunning());
+        }
+        
     }
 
     void Magnetic_Move() {
@@ -455,8 +463,20 @@ public class TestPlayerControl : MonoBehaviour {
     }
 
 
-
     IEnumerator blackholeRunning() {
+        After_BalckHole();
+
+        yield return new WaitForSeconds(blackholeRunTime);
+
+        if(isBlackHoling) {
+            Debug.Log("BlackHole_Shoot!!");
+
+            Before_BlackHole();
+        }
+
+    }
+
+    void After_BalckHole() {
         isBlackHoling = true;
 
         isBlackHoleAllow = false;
@@ -465,11 +485,9 @@ public class TestPlayerControl : MonoBehaviour {
         isMoveAllow = false;
         isRepulsiveAllow = false;
         isSurefaceAllow = false;
+    }
 
-        yield return new WaitForSeconds(blackholeRunTime);
-
-        Debug.Log("BlackHole_Shoot!!");
-
+    void Before_BlackHole() {
         isBlackHoling = false;
 
         isBlackHoleAllow = true;
@@ -517,6 +535,3 @@ public class TestPlayerControl : MonoBehaviour {
 
     #endregion
 }
-
-
-//test
