@@ -5,6 +5,10 @@ public class zBullet : MonoBehaviour {
     [Header("Status")]
     public float zSpeed;
     public float zForce;
+    public Vector3 mousePosition;
+    public Vector3 direction;
+    public Vector2 movementDirection;
+    public float angle;
 
     [Header("Object")]
     public GameObject Player;
@@ -21,12 +25,22 @@ public class zBullet : MonoBehaviour {
     }
 
     void Start() {
-        if(playerControl.isFacingRight) {
-            rb.velocity = Vector2.right * zSpeed;
+        mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        direction = mousePosition - transform.position;
+        angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+        if(angle < 0) {
+            angle += 360;
         }
-        else {
-            rb.velocity = Vector2.left * zSpeed;
-        }
+
+        rb.rotation = angle;
+
+        movementDirection = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+
+        rb.velocity = movementDirection.normalized * zSpeed * zForce;
+
+        Debug.Log("Angle: " + angle);
+
         Destroy(gameObject, 2.0f);
     }
 

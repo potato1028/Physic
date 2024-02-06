@@ -1260,13 +1260,20 @@ MonoBehaviour:
   Hp: 0
   moveSpeed: 5
   jumpForce: 10
-  hitDelayTime: 2
-  moveDelayTime: 1
+  absoluteDelayTime: 5
+  blackholeDelayTime: 5
   centrifugalDelayTime: 2
   frictionDelayTime: 2
+  hitDelayTime: 2
+  magneticDelayTime: 2
   repulsiveDelayTime: 2
+  surefaceDelayTime: 2
+  moveDelayTime: 1
+  absoluteRunTime: 2
+  blackholeRunTime: 2
   frictionRunTime: 0.5
-  repulsiveRunTime: 0.5
+  magneticRunTime: 1
+  surefaceRunTime: 5
   currentCentrifugalChargeForce: 0
   maxCentrifugalChargeForce: 3
   CentrifugalChargeSpeed: 2
@@ -1291,18 +1298,27 @@ MonoBehaviour:
   enemyBulletLayer:
     serializedVersion: 2
     m_Bits: 2048
-  isHit: 0
   isGroundeds: 000000
   isGrounded: 0
   isFacingRight: 0
   isAttachedToWall: 0
-  isMoveAllow: 1
+  isAbsoluteAllow: 1
+  isBlackHoleAllow: 1
   isCentrifugalAllow: 1
   isFrictionAllow: 1
+  isHitAllow: 1
+  isMagneticAllow: 1
+  isMoveAllow: 1
   isRepulsiveAllow: 1
+  isSurefaceAllow: 1
+  isAbsoluting: 0
+  isBlackHoling: 0
   isCentrifugaling: 0
   isFrictioning: 0
+  isHitting: 0
+  isMagneting: 0
   isRepulsiving: 0
+  isSurefacing: 0
   centrifugalBullet_prefab: {fileID: 7553649875948450815, guid: d2f3b73aeecfa4fb39baa2992f587d59, type: 3}
   repulsive_prefab: {fileID: 7752448116699777567, guid: 76de147e3c9b240a299e305a49fce698, type: 3}
   centrifugalForceText: {fileID: 414282630}

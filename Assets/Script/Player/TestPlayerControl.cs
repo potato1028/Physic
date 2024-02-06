@@ -9,8 +9,8 @@ public class TestPlayerControl : MonoBehaviour {
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
     //
-    public float absoluteDelayTime = 2.0f;
-    public float blackholeDelayTime = 2.0f;
+    public float absoluteDelayTime = 5.0f;
+    public float blackholeDelayTime = 5.0f;
     public float centrifugalDelayTime = 2.0f;
     public float frictionDelayTime = 2.0f;
     public float hitDelayTime = 2.0f;
@@ -29,7 +29,7 @@ public class TestPlayerControl : MonoBehaviour {
     public float maxCentrifugalChargeForce = 3.0f;
     public float CentrifugalChargeSpeed = 2.0f;
     public int centrifugalForce;
-    public float centrifugalSpeed = 10.0f;
+    public float centrifugalSpeed = 5.0f;
     //
     public float repulsiveSpeed = 30.0f;
 
@@ -315,13 +315,8 @@ public class TestPlayerControl : MonoBehaviour {
             
             Debug.Log(centrifugalForce);
 
-            if(isFacingRight) {
-                GameObject centrifugalBullet = Instantiate(centrifugalBullet_prefab, new Vector2(transform.position.x + 0.4f, transform.position.y), Quaternion.identity);
-            }
-            else {
-                GameObject centrifugalBullet = Instantiate(centrifugalBullet_prefab, new Vector2(transform.position.x - 0.4f, transform.position.y), Quaternion.identity);
-            }
-
+            GameObject centrifugalBullet = Instantiate(centrifugalBullet_prefab, new Vector2(transform.position.x, transform.position.y), Quaternion.identity);
+            
             StartCoroutine(centrifugalDelay());
         }
     }
@@ -331,23 +326,31 @@ public class TestPlayerControl : MonoBehaviour {
         && !isHitting && !isMagneting) {
             Debug.Log("Friction!");
             StartCoroutine(frictionDelay());
-            StartCoroutine(frictionRunning());
+            StartCoroutine(frictionRunning("none"));
         }
         else if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded && isAbsoluting) {
             Before_Absolute();
+            StartCoroutine(absoluteDelay());
 
             Debug.Log("Friction!");
             StartCoroutine(frictionDelay());
-            StartCoroutine(frictionRunning());
+            StartCoroutine(frictionRunning("Absolute"));
         }
         else if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded && isBlackHoling) {
             Before_BlackHole();
+            StartCoroutine(blackholeDelay());
 
             Debug.Log("Friction!");
             StartCoroutine(frictionDelay());
-            StartCoroutine(frictionRunning());
+            StartCoroutine(frictionRunning("BlackHole"));
         }
-        
+        else if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded && isCentrifugaling) {
+            isCentrifugaling = false;
+
+            Debug.Log("Friction!");
+            StartCoroutine(frictionDelay());
+            StartCoroutine(frictionRunning("none"));
+        }
     }
 
     void Magnetic_Move() {
@@ -479,7 +482,7 @@ public class TestPlayerControl : MonoBehaviour {
     void After_BalckHole() {
         isBlackHoling = true;
 
-        isBlackHoleAllow = false;
+        isAbsoluteAllow = false;
         isCentrifugalAllow = false;
         isMagneticAllow = false;
         isMoveAllow = false;
@@ -490,7 +493,7 @@ public class TestPlayerControl : MonoBehaviour {
     void Before_BlackHole() {
         isBlackHoling = false;
 
-        isBlackHoleAllow = true;
+        isAbsoluteAllow = true;
         isCentrifugalAllow = true;
         isMagneticAllow = true;
         isMoveAllow = true;
@@ -499,32 +502,82 @@ public class TestPlayerControl : MonoBehaviour {
     }
 
 
-    IEnumerator frictionRunning() {
+    IEnumerator frictionRunning(string skill) {
         isFrictioning = true;
+        switch(skill) {
+            case "none" :
+                isAbsoluteAllow = false;
+                isBlackHoleAllow = false;
+                isCentrifugalAllow = false;
+                isHitAllow = false;
+                isMagneticAllow = false;
+                isMoveAllow = false;
+                isRepulsiveAllow = false;
+                isSurefaceAllow = false;
 
-        isAbsoluteAllow = false;
-        isBlackHoleAllow = false;
-        isCentrifugalAllow = false;
-        isHitAllow = false;
-        isMagneticAllow = false;
-        isMoveAllow = false;
-        isRepulsiveAllow = false;
-        isSurefaceAllow = false;
+                yield return new WaitForSeconds(frictionRunTime);
 
-        yield return new WaitForSeconds(frictionRunTime);
+                Debug.Log("Friction_End");
 
-        Debug.Log("Friction_End");
+                isAbsoluteAllow = true;
+                isBlackHoleAllow = true;
+                isCentrifugalAllow = true;
+                isHitAllow = true;
+                isMagneticAllow = true;
+                isMoveAllow = true;
+                isRepulsiveAllow = true;
+                isSurefaceAllow = true;
 
+                break;
+
+            case "Absolute" :
+                isBlackHoleAllow = false;
+                isCentrifugalAllow = false;
+                isHitAllow = false;
+                isMagneticAllow = false;
+                isMoveAllow = false;
+                isRepulsiveAllow = false;
+                isSurefaceAllow = false;
+
+                yield return new WaitForSeconds(frictionRunTime);
+
+                Debug.Log("Friction_End");
+
+                isBlackHoleAllow = true;
+                isCentrifugalAllow = true;
+                isHitAllow = true;
+                isMagneticAllow = true;
+                isMoveAllow = true;
+                isRepulsiveAllow = true;
+                isSurefaceAllow = true;
+
+                break;
+
+            case "BlackHole" :
+                isAbsoluteAllow = false;
+                isCentrifugalAllow = false;
+                isHitAllow = false;
+                isMagneticAllow = false;
+                isMoveAllow = false;
+                isRepulsiveAllow = false;
+                isSurefaceAllow = false;
+
+                yield return new WaitForSeconds(frictionRunTime);
+
+                Debug.Log("Friction_End");
+
+                isAbsoluteAllow = true;
+                isCentrifugalAllow = true;
+                isHitAllow = true;
+                isMagneticAllow = true;
+                isMoveAllow = true;
+                isRepulsiveAllow = true;
+                isSurefaceAllow = true;
+
+                break;
+
+        }
         isFrictioning = false;
-
-        isAbsoluteAllow = true;
-        isBlackHoleAllow = true;
-        isCentrifugalAllow = true;
-        isHitAllow = true;
-        isMagneticAllow = true;
-        isMoveAllow = true;
-        isRepulsiveAllow = true;
-        isSurefaceAllow = true;
     }
 
     // IEnumerator magneticRunning() {
