@@ -25,6 +25,9 @@ public class TestPlayerControl : MonoBehaviour {
     public float magneticRunTime  = 1.0f;
     public float surefaceRunTime = 5.0f;
     //
+    public float absoluteZeroTime = 2.0f;
+    public float absoluteZeroSpeed = 5.0f;
+    //
     public float currentCentrifugalChargeForce;
     public float maxCentrifugalChargeForce = 3.0f;
     public float CentrifugalChargeSpeed = 2.0f;
@@ -33,10 +36,14 @@ public class TestPlayerControl : MonoBehaviour {
     //
     public float repulsiveSpeed = 30.0f;
 
+
     [Header("Player_Component")]
     public Rigidbody2D rb;
     public SpriteRenderer sp;
     public CapsuleCollider2D capsule2D;
+
+    [Header("Others_Component")]
+    public Bind bind;
 
     [Header("Layer")]
     public LayerMask groundLayer;
@@ -73,7 +80,10 @@ public class TestPlayerControl : MonoBehaviour {
     [Header("Player_Item")]
     public GameObject centrifugalBullet_prefab;
     public GameObject repulsive_prefab;
+    public GameObject absolute_prefab;
     public Text centrifugalForceText;
+    //
+    public GameObject absoluteBind;
 
     [Header("RayCast")]
     RaycastHit2D[] groundHits = new RaycastHit2D[3];
@@ -287,6 +297,9 @@ public class TestPlayerControl : MonoBehaviour {
         if(Input.GetKey(KeyCode.D) && isAbsoluteAllow
         && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
             Debug.Log("Absolute_Zero_Charging");
+            absoluteBind = Instantiate(absolute_prefab, new Vector2(transform.position.x, transform.position.y + 1.3f), Quaternion.identity);
+            absoluteBind.transform.parent = this.gameObject.transform;
+            bind = absoluteBind.GetComponent<Bind>();
             StartCoroutine(absoluteDelay());
             StartCoroutine(absoluteRunning());
         }
@@ -437,8 +450,8 @@ public class TestPlayerControl : MonoBehaviour {
 
         if(isAbsoluting) {
             Debug.Log("Absolute_Zero_Shoot!");
-
-            Before_Absolute();
+            bind.Shoot();
+            Before_Absolute();  
         }
     }
 
@@ -473,7 +486,7 @@ public class TestPlayerControl : MonoBehaviour {
 
         if(isBlackHoling) {
             Debug.Log("BlackHole_Shoot!!");
-
+            
             Before_BlackHole();
         }
 
@@ -538,6 +551,10 @@ public class TestPlayerControl : MonoBehaviour {
                 isMoveAllow = false;
                 isRepulsiveAllow = false;
                 isSurefaceAllow = false;
+
+                if(absoluteBind != null) {
+                    Destroy(absoluteBind);
+                }
 
                 yield return new WaitForSeconds(frictionRunTime);
 

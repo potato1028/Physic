@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 public class Repulsive : MonoBehaviour {
     [Header("Status")]
-    public float repulsiveSpeed;
+    public float repulsiveSpeed = 5.0f;
 
     [Header("Object")]
     public GameObject Player;

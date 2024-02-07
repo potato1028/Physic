@@ -1283,6 +1283,7 @@ MonoBehaviour:
   rb: {fileID: 1257679470}
   sp: {fileID: 1257679471}
   capsule2D: {fileID: 1257679473}
+  bind: {fileID: 0}
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -1321,7 +1322,9 @@ MonoBehaviour:
   isSurefacing: 0
   centrifugalBullet_prefab: {fileID: 7553649875948450815, guid: d2f3b73aeecfa4fb39baa2992f587d59, type: 3}
   repulsive_prefab: {fileID: 7752448116699777567, guid: 76de147e3c9b240a299e305a49fce698, type: 3}
+  absolute_prefab: {fileID: 6856250370411499798, guid: d9cf8cb2899ab42b59738e0308dbc0eb, type: 3}
   centrifugalForceText: {fileID: 414282630}
+  absoluteBind: {fileID: 0}
 --- !u!1 &1267438679
 GameObject:
   m_ObjectHideFlags: 0

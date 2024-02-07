@@ -16,10 +16,13 @@ public class TestEnemy : MonoBehaviour {
     public Vector3 direction;
     public Vector2 currentPosition;
 
-    [Header("Component")]
+    [Header("Enemy_Component")]
     public Rigidbody2D rb;
     public SpriteRenderer sp;
     public BoxCollider2D box2D;
+
+    [Header("Others_Component")]
+    public Bind bind;
 
     [Header("Layer")]
     public LayerMask playerLayer;
@@ -29,6 +32,7 @@ public class TestEnemy : MonoBehaviour {
     public bool isMoveAllow = true;
     public bool isAttackRange = false;
     public bool isDetectionPlayer = false;
+    public bool isBind = false;
 
     [Header("RayCast")]
     private Ray forwardRay;
@@ -53,12 +57,12 @@ public class TestEnemy : MonoBehaviour {
     #region Collider
 
     void DetectionPlayer() {
-        if(isFacingRight) {
+        if(isFacingRight && !isBind) {
             forwardRay = new Ray(transform.position, transform.right);
             backwardRay = new Ray(transform.position, -transform.right);
             attackRangeRay = new Ray(transform.position, transform.right);
         }
-        else {
+        else if(!isFacingRight && !isBind) {
             forwardRay = new Ray(transform.position, -transform.right);
             backwardRay = new Ray(transform.position, transform.right);
             attackRangeRay = new Ray(transform.position, -transform.right);
@@ -69,7 +73,7 @@ public class TestEnemy : MonoBehaviour {
         backwardHit = Physics2D.Raycast(backwardRay.origin, backwardRay.direction, backwardDistance, playerLayer);
         attackRangeHit = Physics2D.Raycast(attackRangeRay.origin, attackRangeRay.direction, attackRangeDistance, playerLayer);
 
-        if(forwardHit.collider) {
+        if(forwardHit.collider && !isBind) {
             Follow(forwardHit.collider.gameObject);
             isDetectionPlayer = true;
             if(forwardDistance <= 3.0f) {
@@ -77,14 +81,14 @@ public class TestEnemy : MonoBehaviour {
                 backwardDistance *= 1.5f;
             }
         }
-        else if(backwardHit.collider) {
+        else if(backwardHit.collider && !isBind) {
             Flip();
         }
         else {
             isDetectionPlayer = false;
         }
 
-        if(!forwardHit.collider && !isDetectionPlayer) {
+        if(!forwardHit.collider && !isDetectionPlayer && !isBind) {
 
             if(forwardDistance > 3.0f) {
                 forwardDistance /= 1.5f;
@@ -92,7 +96,7 @@ public class TestEnemy : MonoBehaviour {
             }
         }
         
-        if(attackRangeHit.collider) {
+        if(attackRangeHit.collider && !isBind) {
             StartCoroutine(Attack());
         }
     }
@@ -139,6 +143,22 @@ public class TestEnemy : MonoBehaviour {
                 }
                 break;
 
+            case "absoluteBind" :
+                isMoveAllow = false;
+                isBind = true;
+                Debug.Log("Bind");
+                break;
+
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other) {
+        switch(LayerMask.LayerToName(other.gameObject.layer)) {
+            case "absoluteBind" :
+                bind = other.GetComponent<Bind>();
+                Invoke("Bind_Delay", bind.bindTime);
+                break;
+
         }
     }
 
@@ -172,6 +192,11 @@ public class TestEnemy : MonoBehaviour {
 
     }
 
+    void Bind_Delay() {
+        isMoveAllow = true;
+        isBind = false;
+    }
+
     #endregion
 
     #region Attack
@@ -197,3 +222,4 @@ public class TestEnemy : MonoBehaviour {
 
 
 
+ 
