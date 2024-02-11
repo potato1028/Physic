@@ -573,6 +573,7 @@ MonoBehaviour:
   rb: {fileID: 392573292}
   sp: {fileID: 392573293}
   box2D: {fileID: 392573294}
+  bind: {fileID: 0}
   playerLayer:
     serializedVersion: 2
     m_Bits: 128
@@ -580,6 +581,7 @@ MonoBehaviour:
   isMoveAllow: 1
   isAttackRange: 0
   isDetectionPlayer: 0
+  isBind: 0
   moveFloor: {fileID: 785344482}
   bFloor:
     m_Center: {x: 0, y: 0, z: 0}
@@ -771,7 +773,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1274,6 +1276,8 @@ MonoBehaviour:
   frictionRunTime: 0.5
   magneticRunTime: 1
   surefaceRunTime: 5
+  absoluteZeroTime: 2
+  absoluteZeroSpeed: 5
   currentCentrifugalChargeForce: 0
   maxCentrifugalChargeForce: 3
   CentrifugalChargeSpeed: 2
@@ -1325,6 +1329,7 @@ MonoBehaviour:
   absolute_prefab: {fileID: 6856250370411499798, guid: d9cf8cb2899ab42b59738e0308dbc0eb, type: 3}
   centrifugalForceText: {fileID: 414282630}
   absoluteBind: {fileID: 0}
+  mousePosition: {x: 0, y: 0, z: 0}
 --- !u!1 &1267438679
 GameObject:
   m_ObjectHideFlags: 0

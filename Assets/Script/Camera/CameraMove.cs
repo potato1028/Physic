@@ -9,7 +9,7 @@ public class Cameramove : MonoBehaviour {
 
     void LateUpdate() {
         if(target != null) {
-            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + 3f, transform.position.z);
+            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + 6f, transform.position.z);
             Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
             transform.position = smoothedPosition;
         }

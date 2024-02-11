@@ -89,6 +89,7 @@ public class TestPlayerControl : MonoBehaviour {
     RaycastHit2D[] groundHits = new RaycastHit2D[3];
     Vector2 groundRay;
     Vector2 wallRay;
+    public Vector3 mousePosition;
 
 
     void Update() {
@@ -294,7 +295,7 @@ public class TestPlayerControl : MonoBehaviour {
     #region PlayerSkill
 
     void Absolute_Zero() {
-        if(Input.GetKey(KeyCode.D) && isAbsoluteAllow
+        if(Input.GetKey(KeyCode.E) && isAbsoluteAllow
         && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
             Debug.Log("Absolute_Zero_Charging");
             absoluteBind = Instantiate(absolute_prefab, new Vector2(transform.position.x, transform.position.y + 1.3f), Quaternion.identity);
@@ -315,14 +316,14 @@ public class TestPlayerControl : MonoBehaviour {
     }
 
     void Centrifugal_Force() {
-        if(Input.GetKey(KeyCode.Z) && isCentrifugalAllow
+        if(Input.GetMouseButton(0) && isCentrifugalAllow
             && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
             isCentrifugaling = true;
             currentCentrifugalChargeForce += Time.deltaTime * CentrifugalChargeSpeed;
             currentCentrifugalChargeForce = Mathf.Min(currentCentrifugalChargeForce, maxCentrifugalChargeForce);
         }
 
-        if(Input.GetKeyUp(KeyCode.Z)) {
+        if(Input.GetMouseButtonUp(0)) {
             isCentrifugaling = false;
             centrifugalForce = (int)(currentCentrifugalChargeForce + 1f);
             
@@ -371,7 +372,7 @@ public class TestPlayerControl : MonoBehaviour {
     }
 
     void Repulsive_Push() {
-        if(Input.GetKeyDown(KeyCode.A) && isRepulsiveAllow && isMoveAllow
+        if(Input.GetKeyDown(KeyCode.F) && isRepulsiveAllow && isMoveAllow
             && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting) {
             if(isFacingRight) {
                 GameObject repulsive = Instantiate(repulsive_prefab, new Vector2(transform.position.x + 0.4f, transform.position.y), Quaternion.identity);
