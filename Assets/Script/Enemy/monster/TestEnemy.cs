@@ -149,6 +149,11 @@ public class TestEnemy : MonoBehaviour {
                 Debug.Log("Bind");
                 break;
 
+            case "blackholeBomb" :
+                Debug.Log("Bomb");
+                hp -= 5;
+                break;
+
         }
     }
 
@@ -159,6 +164,10 @@ public class TestEnemy : MonoBehaviour {
                 Invoke("Bind_Delay", bind.bindTime);
                 break;
 
+            case "blackholeBomb" :
+                Debug.Log("Bomb");
+                hp -= 5;
+                break;
         }
     }
 

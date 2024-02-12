@@ -73,13 +73,13 @@ public class Bind : MonoBehaviour {
 
             case "Ground" :
                 if(!isHitEnemy) {
-                    Destroy(gameObject, 0.5f);
+                    Destroy(gameObject, 0.2f);
                 }
                 break;
 
             case "Wall" :
                 if(!isHitEnemy) {
-                    Destroy(gameObject, 0.5f);
+                    Destroy(gameObject, 0.2f);
                 }
                 break;
 

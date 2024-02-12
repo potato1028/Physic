@@ -28,6 +28,9 @@ public class TestPlayerControl : MonoBehaviour {
     public float absoluteZeroTime = 2.0f;
     public float absoluteZeroSpeed = 5.0f;
     //
+    public float blackholeBombTime = 2.0f;
+    public float blackholeBombSpeed = 5.0f;
+    //
     public float currentCentrifugalChargeForce;
     public float maxCentrifugalChargeForce = 3.0f;
     public float CentrifugalChargeSpeed = 2.0f;
@@ -44,6 +47,7 @@ public class TestPlayerControl : MonoBehaviour {
 
     [Header("Others_Component")]
     public Bind bind;
+    public Bomb bomb;
 
     [Header("Layer")]
     public LayerMask groundLayer;
@@ -81,15 +85,18 @@ public class TestPlayerControl : MonoBehaviour {
     public GameObject centrifugalBullet_prefab;
     public GameObject repulsive_prefab;
     public GameObject absolute_prefab;
+    public GameObject blackhole_prefab;
     public Text centrifugalForceText;
     //
     public GameObject absoluteBind;
+    public GameObject blackholeBomb;
 
     [Header("RayCast")]
     RaycastHit2D[] groundHits = new RaycastHit2D[3];
     Vector2 groundRay;
     Vector2 wallRay;
-    public Vector3 mousePosition;
+
+    private bool isPaused = false;
 
 
     void Update() {
@@ -103,6 +110,17 @@ public class TestPlayerControl : MonoBehaviour {
         Repulsive_Push();
 
         UpdateText();
+
+        if(Input.GetKeyDown(KeyCode.X)) {
+            if(isPaused) {
+                Time.timeScale = 1f;
+                isPaused = false;
+            }
+            else {
+                Time.timeScale = 0f;
+                isPaused = true;
+            }
+        }
     }
 
     void FixedUpdate() {
@@ -298,6 +316,7 @@ public class TestPlayerControl : MonoBehaviour {
         if(Input.GetKey(KeyCode.E) && isAbsoluteAllow
         && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
             Debug.Log("Absolute_Zero_Charging");
+            rb.velocity = Vector2.zero;
             absoluteBind = Instantiate(absolute_prefab, new Vector2(transform.position.x, transform.position.y + 1.3f), Quaternion.identity);
             absoluteBind.transform.parent = this.gameObject.transform;
             bind = absoluteBind.GetComponent<Bind>();
@@ -310,6 +329,10 @@ public class TestPlayerControl : MonoBehaviour {
         if(Input.GetKey(KeyCode.Q) && isBlackHoleAllow
         && !isAbsoluting && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
             Debug.Log("BlackHole_Charging");
+            rb.velocity = Vector2.zero;
+            blackholeBomb = Instantiate(blackhole_prefab, new Vector2(transform.position.x, transform.position.y + 1.3f), Quaternion.identity);
+            blackholeBomb.transform.parent = this.gameObject.transform;
+            bomb = blackholeBomb.GetComponent<Bomb>();
             StartCoroutine(blackholeDelay());
             StartCoroutine(blackholeRunning());
         }
@@ -487,7 +510,7 @@ public class TestPlayerControl : MonoBehaviour {
 
         if(isBlackHoling) {
             Debug.Log("BlackHole_Shoot!!");
-            
+            bomb.Shoot();
             Before_BlackHole();
         }
 

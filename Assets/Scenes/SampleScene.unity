@@ -1278,6 +1278,8 @@ MonoBehaviour:
   surefaceRunTime: 5
   absoluteZeroTime: 2
   absoluteZeroSpeed: 5
+  blackholeBombTime: 2
+  blackholeBombSpeed: 5
   currentCentrifugalChargeForce: 0
   maxCentrifugalChargeForce: 3
   CentrifugalChargeSpeed: 2
@@ -1327,9 +1329,10 @@ MonoBehaviour:
   centrifugalBullet_prefab: {fileID: 7553649875948450815, guid: d2f3b73aeecfa4fb39baa2992f587d59, type: 3}
   repulsive_prefab: {fileID: 7752448116699777567, guid: 76de147e3c9b240a299e305a49fce698, type: 3}
   absolute_prefab: {fileID: 6856250370411499798, guid: d9cf8cb2899ab42b59738e0308dbc0eb, type: 3}
+  blackhole_prefab: {fileID: 4012774919202515262, guid: d4dd51eec1d3e4103859c239ff7fb038, type: 3}
   centrifugalForceText: {fileID: 414282630}
   absoluteBind: {fileID: 0}
-  mousePosition: {x: 0, y: 0, z: 0}
+  blackholeBomb: {fileID: 0}
 --- !u!1 &1267438679
 GameObject:
   m_ObjectHideFlags: 0

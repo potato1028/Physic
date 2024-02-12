@@ -387,6 +387,7 @@
 "Assets/Script/Enemy/Test_Weapon/Click_Shoot.cs"
 "Assets/Script/Enemy/Test_Weapon/Test_EnemyBullet.cs"
 "Assets/Script/Object/Bind.cs"
+"Assets/Script/Object/Bomb.cs"
 "Assets/Script/Object/Repulsive.cs"
 "Assets/Script/Object/Spring.cs"
 "Assets/Script/Object/zBullet.cs"
