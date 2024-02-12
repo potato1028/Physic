@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class TestPlayerControl : MonoBehaviour {
     [Header("Player_Status")]
     public float horiaontalInput;
+    public float verticalInput;
     public float Hp;
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
@@ -16,14 +17,12 @@ public class TestPlayerControl : MonoBehaviour {
     public float hitDelayTime = 2.0f;
     public float magneticDelayTime = 2.0f;
     public float repulsiveDelayTime = 2.0f;
-    public float surefaceDelayTime = 2.0f;
     public float moveDelayTime = 1.0f;
     //
     public float absoluteRunTime = 2.0f;
     public float blackholeRunTime = 2.0f;
     public float frictionRunTime = 0.5f;
     public float magneticRunTime  = 1.0f;
-    public float surefaceRunTime = 5.0f;
     //
     public float absoluteZeroTime = 2.0f;
     public float absoluteZeroSpeed = 5.0f;
@@ -38,6 +37,13 @@ public class TestPlayerControl : MonoBehaviour {
     public float centrifugalSpeed = 5.0f;
     //
     public float repulsiveSpeed = 30.0f;
+    //
+    public float magnetMaxTime = 0.3f;
+    public Vector2 magnetDistance;
+    public float magnetMoveTime;
+    //
+    public float attractionFace = 10f;
+    public Vector2 surefaceDirection;
 
 
     [Header("Player_Component")]
@@ -55,12 +61,15 @@ public class TestPlayerControl : MonoBehaviour {
     public LayerMask springLayer;
     public LayerMask enemyLayer;
     public LayerMask enemyBulletLayer;
+    public LayerMask magnetLayer;
 
     [Header("Player_Condition")]
     public bool[] isGroundeds = new bool[3];
     public bool isGrounded;
     public bool isFacingRight;
+    public bool[] isWalls = new bool[3];
     public bool isAttachedToWall;
+    public bool isAttachedMagnet = false;
     //
     public bool isAbsoluteAllow = true;
     public bool isBlackHoleAllow = true;
@@ -69,6 +78,8 @@ public class TestPlayerControl : MonoBehaviour {
     public bool isHitAllow = true;
     public bool isMagneticAllow = true;
     public bool isMoveAllow = true;
+    public bool isRedCondition = false;
+    public bool isBlueCondition = true;
     public bool isRepulsiveAllow = true;
     public bool isSurefaceAllow = true;
     //
@@ -93,10 +104,16 @@ public class TestPlayerControl : MonoBehaviour {
 
     [Header("RayCast")]
     RaycastHit2D[] groundHits = new RaycastHit2D[3];
+    RaycastHit2D[] wallHits = new RaycastHit2D[3];
     Vector2 groundRay;
     Vector2 wallRay;
 
     private bool isPaused = false;
+
+    void Start() {
+        groundLayer = LayerMask.GetMask("Ground", "Magnet");
+        wallLayer = LayerMask.GetMask("Wall", "Magnet");
+    }
 
 
     void Update() {
@@ -108,10 +125,11 @@ public class TestPlayerControl : MonoBehaviour {
         Centrifugal_Force();
         Dry_Friction();
         Repulsive_Push();
+        Magnetic_Change();
 
         UpdateText();
 
-        if(Input.GetKeyDown(KeyCode.X)) {
+        if(Input.GetKeyDown(KeyCode.M)) {
             if(isPaused) {
                 Time.timeScale = 1f;
                 isPaused = false;
@@ -129,13 +147,20 @@ public class TestPlayerControl : MonoBehaviour {
 
         //Move
         if(!isAttachedToWall && isMoveAllow 
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting) {
+            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
             Vector2 moveDirection = new Vector2(horiaontalInput, 0);
             rb.velocity = new Vector2(moveDirection.x * moveSpeed, rb.velocity.y);
+        }
+        else if(!isAttachedToWall && isMoveAllow 
+            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && isSurefacing) {
+            verticalInput = Input.GetAxis("Vertical");
+            Vector2 moveDirection = new Vector2(horiaontalInput, verticalInput);
+            rb.velocity = new Vector2(moveDirection.x * moveSpeed, moveDirection.y * moveSpeed);
         }
 
         //isGround
         float groundRayThickness = -0.4f;
+        float wallRayThickness = -0.3f;
 
         for(int i = 0; i < 3; i++) {
             groundRay = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
@@ -149,9 +174,19 @@ public class TestPlayerControl : MonoBehaviour {
             }
             groundRayThickness += 0.4f;
         }
-        
-        wallRay = new Vector2(transform.position.x, transform.position.y - 1.0f);
-        isAttachedToWall = Physics2D.Raycast(wallRay, Vector2.right * transform.localScale.x, 0.51f, wallLayer);        
+
+        for(int i = 0; i < 3; i++) {
+            wallRay = new Vector2(transform.position.x, transform.position.y + wallRayThickness);
+            isWalls[i] = Physics2D.Raycast(wallRay, Vector2.right, 0.51f, wallLayer);
+            if(isWalls[i]) {
+                isAttachedToWall = true;
+                break;
+            }
+            else {
+                isAttachedToWall = false;
+            }
+            wallRayThickness += 0.3f;
+        }
     }
 
     void UpdateText() {
@@ -217,9 +252,38 @@ public class TestPlayerControl : MonoBehaviour {
                     Debug.Log("Dry_Friction");
                 }
                 break;
-            }
-        
+
+            case "surefaceWall" :
+                Debug.Log("sureface");
+                isSurefacing = true;
+                SureFace_Water();
+                break;
+
+            case "StopMagnet" :
+                Debug.Log("Stop");
+                isMagneting = false;
+                rb.velocity = Vector2.zero;
+                break;
+            }        
     }
+
+    void OnTriggerStay2D(Collider2D other) {
+        switch(LayerMask.LayerToName(other.gameObject.layer)) {
+            case "surefaceWall" :
+                isSurefacing = true;
+                break;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other) {
+        switch(LayerMask.LayerToName(other.gameObject.layer)) {
+            case "surefaceWall" :
+                isSurefacing = false;
+                SureFace_Water();
+                break;
+        }
+    }
+
 
     void OnCollisionEnter2D(Collision2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
@@ -390,8 +454,28 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
-    void Magnetic_Move() {
-        
+    public void Magnetic_Move(Vector2 MagnetPosition) {
+        if(isMagneticAllow && isMoveAllow
+            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting) {
+            magnetDistance = MagnetPosition - rb.position;
+            magnetMoveTime = magnetDistance.magnitude / rb.velocity.magnitude;
+
+            if(magnetMoveTime > magnetMaxTime) {
+                magnetMoveTime = 1f;
+            }
+
+            rb.velocity = magnetDistance.normalized * (magnetDistance.magnitude / magnetMaxTime);
+
+            StartCoroutine(magneticDelay());
+            StartCoroutine(magneticRunning());
+        }
+    }
+
+    void Magnetic_Change() {
+        if(Input.GetKeyDown(KeyCode.X)) {
+            isRedCondition = !isRedCondition;
+            isBlueCondition = !isBlueCondition;
+        }
     }
 
     void Repulsive_Push() {
@@ -408,7 +492,15 @@ public class TestPlayerControl : MonoBehaviour {
     }
 
     void SureFace_Water() {
-
+        if(isSurefacing && !isMagneting) {
+            Debug.Log("Gravity 0");
+            rb.velocity = new Vector2(rb.velocity.x, 0f);
+            rb.gravityScale = 4f;
+        }
+        else if(!isSurefacing && !isMagneting){
+            rb.velocity = new Vector2(rb.velocity.x * 5f, rb.velocity.y * 3f);
+            rb.gravityScale = 2f;
+        }
     }
 
     IEnumerator absoluteDelay() {
@@ -447,8 +539,14 @@ public class TestPlayerControl : MonoBehaviour {
         isFrictionAllow = true;
     }
 
-    // IEnumerator magneticDelay() {
-    // }
+    IEnumerator magneticDelay() {
+        isMagneticAllow = false;
+        currentCentrifugalChargeForce = 0f;
+
+        yield return new WaitForSeconds(magneticDelayTime);
+
+        isMagneticAllow = true;
+    }
 
     IEnumerator repulsiveDelay() {
         isRepulsiveAllow = false;
@@ -457,10 +555,6 @@ public class TestPlayerControl : MonoBehaviour {
 
         isRepulsiveAllow = true;
     }
-
-    // IEnumerator surefaceDelay() {
-        
-    // }
 
     /// ///////////////////////////////
     /// ///////////////////////////////
@@ -513,7 +607,6 @@ public class TestPlayerControl : MonoBehaviour {
             bomb.Shoot();
             Before_BlackHole();
         }
-
     }
 
     void After_BalckHole() {
@@ -621,11 +714,39 @@ public class TestPlayerControl : MonoBehaviour {
         isFrictioning = false;
     }
 
-    // IEnumerator magneticRunning() {
-    // }
+    IEnumerator magneticRunning() {
+        After_Magnet();
+        rb.gravityScale = 0f;
 
-    // IEnumerator surefaceRunning() {
-    // }
+        yield return new WaitForSeconds(magneticRunTime);
+
+        Before_Magnet();
+        rb.gravityScale = 2f;
+    }
+
+    void After_Magnet() {
+        isMagneting = true;
+
+        isAbsoluteAllow = false;
+        isBlackHoleAllow = false;
+        isCentrifugalAllow = false;
+        isHitAllow = false;
+        isMoveAllow = false;
+        isRepulsiveAllow = false;
+        isSurefaceAllow = false;
+    }
+
+    void Before_Magnet() {
+        isMagneting = false;
+
+        isAbsoluteAllow = true;
+        isBlackHoleAllow = true;
+        isCentrifugalAllow = true;
+        isHitAllow = true;
+        isMoveAllow = true;
+        isRepulsiveAllow = true;
+        isSurefaceAllow = true;
+    }
 
     #endregion
 }

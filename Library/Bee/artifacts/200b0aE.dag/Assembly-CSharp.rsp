@@ -388,6 +388,8 @@
 "Assets/Script/Enemy/Test_Weapon/Test_EnemyBullet.cs"
 "Assets/Script/Object/Bind.cs"
 "Assets/Script/Object/Bomb.cs"
+"Assets/Script/Object/Magnet_Blue.cs"
+"Assets/Script/Object/Magnet_Red.cs"
 "Assets/Script/Object/Repulsive.cs"
 "Assets/Script/Object/Spring.cs"
 "Assets/Script/Object/zBullet.cs"
