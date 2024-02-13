@@ -749,7 +749,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 392573289}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -12.61, y: 3.6, z: 0}
+  m_LocalPosition: {x: -22.61, y: 2.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1541,7 +1541,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1257679467}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -18.4, y: 3.6, z: 0}
+  m_LocalPosition: {x: -14.81, y: 3.74, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1730,10 +1730,13 @@ MonoBehaviour:
   magnetLayer:
     serializedVersion: 2
     m_Bits: 131072
-  isGroundeds: 000000
+  isGroundeds: 00000000000000000000
   isGrounded: 0
   isFacingRight: 0
-  isAttachedToWall: 0
+  isLeftWalls: 00000000000000000000
+  isRightWalls: 00000000000000000000
+  isAttachedToLeftWall: 0
+  isAttachedToRightWall: 0
   isAttachedMagnet: 0
   isAbsoluteAllow: 1
   isBlackHoleAllow: 1
@@ -1909,7 +1912,7 @@ GameObject:
   - component: {fileID: 1394575240}
   - component: {fileID: 1394575239}
   - component: {fileID: 1394575243}
-  m_Layer: 17
+  m_Layer: 18
   m_Name: BlueMagnet
   m_TagString: Untagged
   m_Icon: {fileID: 0}

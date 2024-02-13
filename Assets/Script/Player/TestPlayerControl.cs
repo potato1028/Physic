@@ -64,11 +64,13 @@ public class TestPlayerControl : MonoBehaviour {
     public LayerMask magnetLayer;
 
     [Header("Player_Condition")]
-    public bool[] isGroundeds = new bool[3];
+    public bool[] isGroundeds = new bool[10];
     public bool isGrounded;
     public bool isFacingRight;
-    public bool[] isWalls = new bool[3];
-    public bool isAttachedToWall;
+    public bool[] isLeftWalls = new bool[10];
+    public bool[] isRightWalls = new bool[10];
+    public bool isAttachedToLeftWall;
+    public bool isAttachedToRightWall;
     public bool isAttachedMagnet = false;
     //
     public bool isAbsoluteAllow = true;
@@ -103,16 +105,15 @@ public class TestPlayerControl : MonoBehaviour {
     public GameObject blackholeBomb;
 
     [Header("RayCast")]
-    RaycastHit2D[] groundHits = new RaycastHit2D[3];
-    RaycastHit2D[] wallHits = new RaycastHit2D[3];
+    Vector2 moveDirection;
     Vector2 groundRay;
     Vector2 wallRay;
 
     private bool isPaused = false;
 
     void Start() {
-        groundLayer = LayerMask.GetMask("Ground", "Magnet");
-        wallLayer = LayerMask.GetMask("Wall", "Magnet");
+        groundLayer = LayerMask.GetMask("Ground", "Magnet_Red", "Magnet_Blue");
+        wallLayer = LayerMask.GetMask("Wall", "Magnet_Red", "Magnet_Blue");
     }
 
 
@@ -146,23 +147,39 @@ public class TestPlayerControl : MonoBehaviour {
         horiaontalInput = Input.GetAxis("Horizontal");
 
         //Move
-        if(!isAttachedToWall && isMoveAllow 
+        if(isMoveAllow 
             && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
-            Vector2 moveDirection = new Vector2(horiaontalInput, 0);
-            rb.velocity = new Vector2(moveDirection.x * moveSpeed, rb.velocity.y);
+            if(isAttachedToLeftWall && horiaontalInput < 0) {
+                moveDirection.x = 0f;
+            }
+            else if(isAttachedToRightWall && horiaontalInput > 0) {
+                moveDirection.x = 0f;
+            }
+            else {
+                moveDirection = new Vector2(horiaontalInput, 0);
+                rb.velocity = new Vector2(moveDirection.x * moveSpeed, rb.velocity.y);
+            }
         }
-        else if(!isAttachedToWall && isMoveAllow 
+        else if(isMoveAllow 
             && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && isSurefacing) {
             verticalInput = Input.GetAxis("Vertical");
-            Vector2 moveDirection = new Vector2(horiaontalInput, verticalInput);
-            rb.velocity = new Vector2(moveDirection.x * moveSpeed, moveDirection.y * moveSpeed);
+            if(isAttachedToLeftWall && horiaontalInput < 0) {
+                moveDirection.x = 0f;
+            }
+            else if(isAttachedToRightWall && horiaontalInput > 0) {
+                moveDirection.x = 0f;
+            }
+            else {
+                moveDirection = new Vector2(horiaontalInput, verticalInput);
+                rb.velocity = new Vector2(moveDirection.x * moveSpeed, moveDirection.y * moveSpeed);
+            }
         }
 
         //isGround
-        float groundRayThickness = -0.4f;
-        float wallRayThickness = -0.3f;
+        float groundRayThickness = -0.5f;
+        float wallRayThickness = -1f;
 
-        for(int i = 0; i < 3; i++) {
+        for(int i = 0; i < 10; i++) {
             groundRay = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
             isGroundeds[i] = Physics2D.Raycast(groundRay, Vector2.down, 1.01f, groundLayer);
             if(isGroundeds[i]) {
@@ -172,20 +189,31 @@ public class TestPlayerControl : MonoBehaviour {
             else {
                 isGrounded = false;
             }
-            groundRayThickness += 0.4f;
+            groundRayThickness += 0.1f;
         }
 
-        for(int i = 0; i < 3; i++) {
+        for(int i = 0; i < 10; i++) {
             wallRay = new Vector2(transform.position.x, transform.position.y + wallRayThickness);
-            isWalls[i] = Physics2D.Raycast(wallRay, Vector2.right, 0.51f, wallLayer);
-            if(isWalls[i]) {
-                isAttachedToWall = true;
+            isLeftWalls[i] = Physics2D.Raycast(wallRay, Vector2.left, 0.51f, wallLayer);
+            isRightWalls[i] = Physics2D.Raycast(wallRay, Vector2.right, 0.51f, wallLayer);
+
+            if(isLeftWalls[i]) {
+                isAttachedToLeftWall = true;
                 break;
             }
             else {
-                isAttachedToWall = false;
+                isAttachedToLeftWall = false;
             }
-            wallRayThickness += 0.3f;
+
+            if(isRightWalls[i]) {
+                isAttachedToRightWall = true;
+                break;
+            }
+            else {
+                isAttachedToRightWall = false;
+            }
+
+            wallRayThickness += 0.2f;
         }
     }
 
@@ -259,10 +287,24 @@ public class TestPlayerControl : MonoBehaviour {
                 SureFace_Water();
                 break;
 
-            case "StopMagnet" :
-                Debug.Log("Stop");
-                isMagneting = false;
-                rb.velocity = Vector2.zero;
+            case "Magnet_Red" :
+                if(isBlueCondition) {
+                    Debug.Log("Stop");
+                    rb.velocity = Vector2.zero;
+                    rb.gravityScale = 2f;
+                    Before_Magnet();
+                    break;
+                }
+                break;
+
+            case "Magnet_Blue" :
+                if(isRedCondition) {
+                    Debug.Log("Stop");
+                    rb.velocity = Vector2.zero;
+                    rb.gravityScale = 2f;
+                    Before_Magnet();
+                    break;
+                }
                 break;
             }        
     }
@@ -726,6 +768,7 @@ public class TestPlayerControl : MonoBehaviour {
 
     void After_Magnet() {
         isMagneting = true;
+        capsule2D.isTrigger = true;
 
         isAbsoluteAllow = false;
         isBlackHoleAllow = false;
@@ -738,6 +781,7 @@ public class TestPlayerControl : MonoBehaviour {
 
     void Before_Magnet() {
         isMagneting = false;
+        capsule2D.isTrigger = false;
 
         isAbsoluteAllow = true;
         isBlackHoleAllow = true;
