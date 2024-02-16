@@ -148,7 +148,7 @@ public class TestPlayerControl : MonoBehaviour {
 
         //Move
         if(isMoveAllow 
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
+            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isMagneting && !isSurefacing) {
             if(isAttachedToLeftWall && horiaontalInput < 0) {
                 moveDirection.x = 0f;
             }
@@ -161,7 +161,7 @@ public class TestPlayerControl : MonoBehaviour {
             }
         }
         else if(isMoveAllow 
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && isSurefacing) {
+            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isMagneting && isSurefacing) {
             verticalInput = Input.GetAxis("Vertical");
             if(isAttachedToLeftWall && horiaontalInput < 0) {
                 moveDirection.x = 0f;
@@ -737,6 +737,10 @@ public class TestPlayerControl : MonoBehaviour {
                 isMoveAllow = false;
                 isRepulsiveAllow = false;
                 isSurefaceAllow = false;
+
+                if(blackholeBomb != null) {
+                    Destroy(blackholeBomb);
+                }
 
                 yield return new WaitForSeconds(frictionRunTime);
 

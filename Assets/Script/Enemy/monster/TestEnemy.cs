@@ -15,6 +15,7 @@ public class TestEnemy : MonoBehaviour {
     public Vector3 newScale;
     public Vector3 direction;
     public Vector2 currentPosition;
+    public Vector2 frontVec;
 
     [Header("Enemy_Component")]
     public Rigidbody2D rb;
@@ -23,9 +24,11 @@ public class TestEnemy : MonoBehaviour {
 
     [Header("Others_Component")]
     public Bind bind;
+    public TestPlayerControl player_Component;
 
     [Header("Layer")]
     public LayerMask playerLayer;
+    public LayerMask groundLayer;
 
     [Header("Condition")]
     public bool isFacingRight = false;
@@ -33,6 +36,10 @@ public class TestEnemy : MonoBehaviour {
     public bool isAttackRange = false;
     public bool isDetectionPlayer = false;
     public bool isBind = false;
+    public bool isRoamAllow = true;
+    //
+    public int roamNext;
+    public float nextRaomTime;
 
     [Header("RayCast")]
     private Ray forwardRay;
@@ -41,17 +48,29 @@ public class TestEnemy : MonoBehaviour {
     private RaycastHit2D forwardHit;
     private RaycastHit2D backwardHit;
     private RaycastHit2D attackRangeHit;
+    private RaycastHit2D roamRayHit;
 
-    [Header("Floor")]
-    public GameObject moveFloor;
-    public Bounds bFloor;
-
-    void Start() {
-        bFloor = moveFloor.GetComponent<SpriteRenderer>().bounds;
+    void Awake() {
+        Invoke("Roam", 5);
     }
 
     void Update() {
         DetectionPlayer();
+    }
+
+    void FixedUpdate() {
+        if(!isDetectionPlayer && isMoveAllow) {
+            rb.velocity = new Vector2(roamNext * moveSpeed, rb.velocity.y);
+        }
+
+        frontVec = new Vector2(rb.position.x + roamNext * 0.2f, rb.position.y);
+        Debug.DrawRay(frontVec, Vector3.down, new Color (0, 1, 0));
+        roamRayHit = Physics2D.Raycast(frontVec, Vector3.down, 1, groundLayer);
+        if(roamRayHit.collider == null) {
+            roamNext *= -1;
+            CancelInvoke();
+            Invoke("Roam", 5);
+        }
     }
 
     #region Collider
@@ -74,6 +93,7 @@ public class TestEnemy : MonoBehaviour {
         attackRangeHit = Physics2D.Raycast(attackRangeRay.origin, attackRangeRay.direction, attackRangeDistance, playerLayer);
 
         if(forwardHit.collider && !isBind) {
+            CancelInvoke();
             Follow(forwardHit.collider.gameObject);
             isDetectionPlayer = true;
             if(forwardDistance <= 3.0f) {
@@ -85,11 +105,10 @@ public class TestEnemy : MonoBehaviour {
             Flip();
         }
         else {
-            isDetectionPlayer = false;
+            Invoke("Roam_Delay", 1f);
         }
 
         if(!forwardHit.collider && !isDetectionPlayer && !isBind) {
-
             if(forwardDistance > 3.0f) {
                 forwardDistance /= 1.5f;
                 backwardDistance /= 1.5f;
@@ -105,6 +124,10 @@ public class TestEnemy : MonoBehaviour {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
             case "Player" :
                 rb.constraints |= RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY;
+                player_Component = other.gameObject.GetComponent<TestPlayerControl>();
+                if(player_Component.isMagneting) {
+                    hp--;
+                }
                 break;
         }
     }
@@ -113,6 +136,10 @@ public class TestEnemy : MonoBehaviour {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
             case "Player" :
                 rb.constraints |= RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY;
+                player_Component = other.gameObject.GetComponent<TestPlayerControl>();
+                if(player_Component.isMagneting) {
+                    hp--;
+                }
                 break;
         }
     }
@@ -197,13 +224,20 @@ public class TestEnemy : MonoBehaviour {
         }
     }
 
-    void Roam() {
-
-    }
-
     void Bind_Delay() {
         isMoveAllow = true;
         isBind = false;
+    }
+
+    void Roam_Delay() {
+        isDetectionPlayer = false;
+    }
+
+    void Roam() {
+        roamNext = Random.Range(-1, 2);
+        nextRaomTime = Random.Range(6f, 9f);
+
+        Invoke("Roam", nextRaomTime);
     }
 
     #endregion
