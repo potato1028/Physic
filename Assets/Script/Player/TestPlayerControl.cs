@@ -9,10 +9,12 @@ public class TestPlayerControl : MonoBehaviour {
     public float Hp;
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
+    public float dashForce = 30f;
     //
     public float absoluteDelayTime = 5.0f;
     public float blackholeDelayTime = 5.0f;
     public float centrifugalDelayTime = 2.0f;
+    public float dashDelayTime = 0.5f;
     public float frictionDelayTime = 2.0f;
     public float hitDelayTime = 2.0f;
     public float magneticDelayTime = 2.0f;
@@ -21,6 +23,7 @@ public class TestPlayerControl : MonoBehaviour {
     //
     public float absoluteRunTime = 2.0f;
     public float blackholeRunTime = 2.0f;
+    public float dashRunTime = 0.15f;
     public float frictionRunTime = 0.5f;
     public float magneticRunTime  = 1.0f;
     //
@@ -64,7 +67,7 @@ public class TestPlayerControl : MonoBehaviour {
     public LayerMask magnetLayer;
 
     [Header("Player_Condition")]
-    public bool[] isGroundeds = new bool[10];
+    public bool[] isGroundeds = new bool[14];
     public bool isGrounded;
     public bool isFacingRight;
     public bool[] isLeftWalls = new bool[10];
@@ -76,6 +79,7 @@ public class TestPlayerControl : MonoBehaviour {
     public bool isAbsoluteAllow = true;
     public bool isBlackHoleAllow = true;
     public bool isCentrifugalAllow = true;
+    public bool isDashAllow = true;
     public bool isFrictionAllow = true;
     public bool isHitAllow = true;
     public bool isMagneticAllow = true;
@@ -88,6 +92,7 @@ public class TestPlayerControl : MonoBehaviour {
     public bool isAbsoluting = false;
     public bool isBlackHoling = false;
     public bool isCentrifugaling = false;
+    public bool isDashing = false;
     public bool isFrictioning = false;
     public bool isHitting = false;
     public bool isMagneting = false;
@@ -111,9 +116,9 @@ public class TestPlayerControl : MonoBehaviour {
 
     private bool isPaused = false;
 
-    void Start() {
-        groundLayer = LayerMask.GetMask("Ground", "Magnet_Red", "Magnet_Blue");
-        wallLayer = LayerMask.GetMask("Wall", "Magnet_Red", "Magnet_Blue");
+    void Awake() {
+        groundLayer = LayerMask.GetMask("Ground", "Wall", "Magnet_Red", "Magnet_Blue");
+        wallLayer = LayerMask.GetMask("Ground", "Wall", "Magnet_Red", "Magnet_Blue");
     }
 
 
@@ -124,6 +129,7 @@ public class TestPlayerControl : MonoBehaviour {
         Absolute_Zero();
         BlackHole_Bomb();
         Centrifugal_Force();
+        Dash();
         Dry_Friction();
         Repulsive_Push();
         Magnetic_Change();
@@ -148,7 +154,7 @@ public class TestPlayerControl : MonoBehaviour {
 
         //Move
         if(isMoveAllow 
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isMagneting && !isSurefacing) {
+            && !isAbsoluting && !isBlackHoling && !isDashing&& !isFrictioning && !isMagneting && !isSurefacing) {
             if(isAttachedToLeftWall && horiaontalInput < 0) {
                 moveDirection.x = 0f;
             }
@@ -161,7 +167,7 @@ public class TestPlayerControl : MonoBehaviour {
             }
         }
         else if(isMoveAllow 
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isMagneting && isSurefacing) {
+            && !isAbsoluting && !isBlackHoling && !isDashAllow && !isFrictioning && !isMagneting && isSurefacing) {
             verticalInput = Input.GetAxis("Vertical");
             if(isAttachedToLeftWall && horiaontalInput < 0) {
                 moveDirection.x = 0f;
@@ -176,10 +182,10 @@ public class TestPlayerControl : MonoBehaviour {
         }
 
         //isGround
-        float groundRayThickness = -0.5f;
+        float groundRayThickness = -0.7f;
         float wallRayThickness = -1f;
 
-        for(int i = 0; i < 10; i++) {
+        for(int i = 0; i < 14; i++) {
             groundRay = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
             isGroundeds[i] = Physics2D.Raycast(groundRay, Vector2.down, 1.01f, groundLayer);
             if(isGroundeds[i]) {
@@ -225,20 +231,20 @@ public class TestPlayerControl : MonoBehaviour {
 
     void Jump() {
         if(isGrounded && Input.GetButtonDown("Jump") && isMoveAllow
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting) {
+            && !isAbsoluting && !isBlackHoling && !isDashing && !isFrictioning && !isHitting && !isMagneting) {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
     }
 
     void Flip() {
         if(horiaontalInput > 0 && !isFacingRight && isMoveAllow
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting) {
+            && !isAbsoluting && !isBlackHoling && !isDashing && !isFrictioning && !isHitting && !isMagneting) {
             Vector3 newScale = transform.localScale;
             newScale.x *= -1;
             transform.localScale = newScale;
         }
         else if(horiaontalInput < 0 && isFacingRight && isMoveAllow
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting) {
+            && !isAbsoluting && !isBlackHoling && !isDashing && !isFrictioning && !isHitting && !isMagneting) {
             Vector3 newScale = transform.localScale;
             newScale.x *= -1;
             transform.localScale = newScale;
@@ -258,7 +264,6 @@ public class TestPlayerControl : MonoBehaviour {
                     if(isMoveAllow) {
                         rb.velocity = new Vector2(rb.velocity.x, 20f);
                     }
-                    
                 }
                 break;
 
@@ -347,6 +352,17 @@ public class TestPlayerControl : MonoBehaviour {
                     Debug.Log("Dry_Friction");
                 }
                 break;
+
+            case "Ground" :
+                if(isDashing) {
+                    Before_Dash();
+                }
+                break;
+            case "Wall" :
+                if(isDashing) {
+                    Before_Dash();
+                }
+                break;
             }
     }
 
@@ -420,7 +436,7 @@ public class TestPlayerControl : MonoBehaviour {
 
     void Absolute_Zero() {
         if(Input.GetKey(KeyCode.E) && isAbsoluteAllow
-        && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
+        && !isBlackHoling && !isDashing && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
             Debug.Log("Absolute_Zero_Charging");
             rb.velocity = Vector2.zero;
             absoluteBind = Instantiate(absolute_prefab, new Vector2(transform.position.x, transform.position.y + 1.3f), Quaternion.identity);
@@ -433,7 +449,7 @@ public class TestPlayerControl : MonoBehaviour {
 
     void BlackHole_Bomb() {
         if(Input.GetKey(KeyCode.Q) && isBlackHoleAllow
-        && !isAbsoluting && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
+        && !isAbsoluting && !isDashing && !isFrictioning && !isHitting && !isMagneting && !isSurefacing) {
             Debug.Log("BlackHole_Charging");
             rb.velocity = Vector2.zero;
             blackholeBomb = Instantiate(blackhole_prefab, new Vector2(transform.position.x, transform.position.y + 1.3f), Quaternion.identity);
@@ -464,14 +480,74 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
+    void Dash() {
+        if(Input.GetKeyDown(KeyCode.LeftShift) && isDashAllow
+            && !isAbsoluting && !isBlackHoling && !isDashing && !isFrictioning && !isHitting && !isMagneting) {
+
+                float xDash = 0f, yDash = 0f;
+
+                if(Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D)) {
+                    rb.velocity = Vector2.zero;
+                    rb.gravityScale = 0f;
+
+                    if(Input.GetKey(KeyCode.W)) {
+                        if(Input.GetKey(KeyCode.D)) {
+                            xDash = (dashForce / 2f);
+                            yDash = (dashForce / 2f);
+                        }
+                        else if(Input.GetKey(KeyCode.A)) {
+                            xDash = -(dashForce / 2f);
+                            yDash = (dashForce / 2f);
+                        }
+                        else {
+                            xDash = 0f;
+                            yDash = dashForce;
+                        }
+                    }
+                    else if(Input.GetKey(KeyCode.S)) {
+                        if(Input.GetKey(KeyCode.D)) {
+                            xDash = (dashForce / 2f);
+                            yDash = -(dashForce / 2f);
+                        }
+                        else if(Input.GetKey(KeyCode.A)) {
+                            xDash = -(dashForce / 2f);
+                            yDash = -(dashForce / 2f);
+                        }
+                        else {
+                            xDash = 0f;
+                            yDash = -dashForce;
+                        }
+                    }
+                    else {
+                        if(Input.GetKey(KeyCode.A)) {
+                            xDash = -dashForce;
+                            yDash = 0f;
+                        }
+                        else if(Input.GetKey(KeyCode.D)) {
+                            xDash = dashForce;
+                            yDash = 0f;
+                        }
+                        else {
+                            return;
+                        }
+                    }
+
+                    rb.velocity = new Vector2(xDash, yDash);
+
+                    StartCoroutine(dashDelay());
+                    StartCoroutine(dashRunning());
+                }
+            }
+    }
+
     void Dry_Friction() {
-        if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded && isMoveAllow
-        && !isHitting && !isMagneting) {
+        if(Input.GetKeyDown(KeyCode.R) && isFrictionAllow && isGrounded && isMoveAllow
+        && !isDashing && !isHitting && !isMagneting) {
             Debug.Log("Friction!");
             StartCoroutine(frictionDelay());
             StartCoroutine(frictionRunning("none"));
         }
-        else if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded && isAbsoluting) {
+        else if(Input.GetKeyDown(KeyCode.R) && isFrictionAllow && isGrounded && isAbsoluting && !isDashing) {
             Before_Absolute();
             StartCoroutine(absoluteDelay());
 
@@ -479,7 +555,7 @@ public class TestPlayerControl : MonoBehaviour {
             StartCoroutine(frictionDelay());
             StartCoroutine(frictionRunning("Absolute"));
         }
-        else if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded && isBlackHoling) {
+        else if(Input.GetKeyDown(KeyCode.R) && isFrictionAllow && isGrounded && isBlackHoling && !isDashing) {
             Before_BlackHole();
             StartCoroutine(blackholeDelay());
 
@@ -487,7 +563,7 @@ public class TestPlayerControl : MonoBehaviour {
             StartCoroutine(frictionDelay());
             StartCoroutine(frictionRunning("BlackHole"));
         }
-        else if(Input.GetKeyDown(KeyCode.LeftShift) && isFrictionAllow && isGrounded && isCentrifugaling) {
+        else if(Input.GetKeyDown(KeyCode.R) && isFrictionAllow && isGrounded && isCentrifugaling && !isDashing) {
             isCentrifugaling = false;
 
             Debug.Log("Friction!");
@@ -522,7 +598,7 @@ public class TestPlayerControl : MonoBehaviour {
 
     void Repulsive_Push() {
         if(Input.GetKeyDown(KeyCode.F) && isRepulsiveAllow && isMoveAllow
-            && !isAbsoluting && !isBlackHoling && !isFrictioning && !isHitting && !isMagneting) {
+            && !isAbsoluting && !isBlackHoling && !isDashing && !isFrictioning && !isHitting && !isMagneting) {
             if(isFacingRight) {
                 GameObject repulsive = Instantiate(repulsive_prefab, new Vector2(transform.position.x + 0.4f, transform.position.y), Quaternion.identity);
             }
@@ -570,6 +646,14 @@ public class TestPlayerControl : MonoBehaviour {
         yield return new WaitForSeconds(centrifugalDelayTime);
 
         isCentrifugalAllow = true;
+    }
+
+    IEnumerator dashDelay() {
+        isDashAllow = false;
+
+        yield return new WaitForSeconds(dashDelayTime);
+
+        isDashAllow = true;
     }
 
     IEnumerator frictionDelay() {
@@ -667,6 +751,44 @@ public class TestPlayerControl : MonoBehaviour {
 
         isAbsoluteAllow = true;
         isCentrifugalAllow = true;
+        isMagneticAllow = true;
+        isMoveAllow = true;
+        isRepulsiveAllow = true;
+        isSurefaceAllow = true;
+    }
+
+    IEnumerator dashRunning() {
+        After_Dash();
+
+        yield return new WaitForSeconds(dashRunTime);
+
+        if(isDashing) {
+            Before_Dash();
+        }
+    }
+
+    void After_Dash() {
+        isDashing = true;
+
+        isAbsoluteAllow = false;
+        isBlackHoleAllow = false;
+        isCentrifugalAllow = true;
+        isFrictionAllow = false;
+        isMagneticAllow = true;
+        isMoveAllow = true;
+        isRepulsiveAllow = false;
+        isSurefaceAllow = true;
+    }
+
+    void Before_Dash() {
+        rb.velocity = Vector2.zero;
+        rb.gravityScale = 2f;
+        isDashing = false;
+
+        isAbsoluteAllow = true;
+        isBlackHoleAllow = true;
+        isCentrifugalAllow = true;
+        isFrictionAllow = true;
         isMagneticAllow = true;
         isMoveAllow = true;
         isRepulsiveAllow = true;
