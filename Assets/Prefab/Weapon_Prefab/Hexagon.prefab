@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 8201359076250567875}
   - component: {fileID: 5621832171875210666}
   - component: {fileID: 3965004028530309991}
-  m_Layer: 15
+  m_Layer: 11
   m_Name: Hexagon
-  m_TagString: Untagged
+  m_TagString: blackholeBomb
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -164,7 +164,6 @@ MonoBehaviour:
   bombSpeed: 0
   bombTime: 0
   maxHeight: 50
-  currentSize: 0.25
   mousePosition: {x: 0, y: 0, z: 0}
   worldMousePosition: {x: 0, y: 0, z: 0}
   distanceX: 0

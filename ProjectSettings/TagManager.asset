@@ -4,31 +4,45 @@
 TagManager:
   serializedVersion: 2
   tags:
+  - Ground
+  - Wall
+  - Plat
+  - BasicEnemy
+  - enemyBullet
+  - NPC
+  - surefaceWall
+  - Magnet_Red
+  - Magnet_Blue
+  - Spring
   - Potal
+  - zBullet
+  - repulsiveForce
+  - absoluteBind
   - Store
-  - CheckTime
+  - ClockTop
   - ItemBox
   - Lava
+  - blackholeBomb
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - Ground
+  - Player
   - Water
   - UI
-  - Wall
-  - Player
-  - LexTertia
-  - zBullet
-  - Enemy
-  - enemyBullet
-  - Enemy_Range
-  - RepulsiveForce
-  - absoluteBind
-  - blackholeBomb
-  - surefaceWall
-  - Magnet_Red
-  - Magnet_Blue
+  - Ground
+  - hostileOrg
+  - hostileObj
+  - friendlyOrg
+  - friendlyObj
+  - Weapon
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
   - 
   - 
   - 

@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1168202201642185465}
   - component: {fileID: 8408627366075445945}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: SurefaceWater
-  m_TagString: Untagged
+  m_TagString: surefaceWall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -96,9 +96,9 @@ GameObject:
   - component: {fileID: 6708316819562600294}
   - component: {fileID: 7604474071520999101}
   - component: {fileID: 3088911209187832157}
-  m_Layer: 16
+  m_Layer: 6
   m_Name: SureFace
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -117,7 +117,7 @@ Transform:
   m_Children:
   - {fileID: 1168202201642185465}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6708316819562600294
 SpriteRenderer:

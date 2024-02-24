@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 2294328561558169467}
   - component: {fileID: 827057635871808703}
   - component: {fileID: 3092575138405979594}
-  m_Layer: 18
+  m_Layer: 10
   m_Name: BlueMagnet
-  m_TagString: Untagged
+  m_TagString: Magnet_Blue
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 2325686326154769229}
   - component: {fileID: 6178276010208003015}
   - component: {fileID: 4485576572683497995}
-  m_Layer: 14
+  m_Layer: 11
   m_Name: Triangle
-  m_TagString: Untagged
+  m_TagString: absoluteBind
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -162,6 +162,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bindSpeed: 5
+  bindTime: 0
   currentSize: 0.25
   mousePosition: {x: 0, y: 0, z: 0}
   direction: {x: 0, y: 0, z: 0}
@@ -172,3 +173,4 @@ MonoBehaviour:
   Enemy: {fileID: 0}
   rb: {fileID: 2325686326154769229}
   circle2D: {fileID: 6178276010208003015}
+  testPlayerControl: {fileID: 0}

@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 7976422620778974680}
   - component: {fileID: 6749909059788228586}
   - component: {fileID: 8154066791955948534}
-  m_Layer: 9
+  m_Layer: 11
   m_Name: zBullet
-  m_TagString: Untagged
+  m_TagString: zBullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,8 +126,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaaa46e40ce804996b130a6fd0cae1a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bulletSpeed: 10
+  zSpeed: 0
   zForce: 0
+  mousePosition: {x: 0, y: 0, z: 0}
+  direction: {x: 0, y: 0, z: 0}
+  movementDirection: {x: 0, y: 0}
+  angle: 0
   Player: {fileID: 0}
   rb: {fileID: 7976422620778974680}
   playerControl: {fileID: 0}

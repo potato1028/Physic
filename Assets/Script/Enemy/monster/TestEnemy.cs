@@ -26,10 +26,6 @@ public class TestEnemy : MonoBehaviour {
     public Bind bind;
     public TestPlayerControl player_Component;
 
-    [Header("Layer")]
-    public LayerMask playerLayer;
-    public LayerMask groundLayer;
-
     [Header("Condition")]
     public bool isFacingRight = false;
     public bool isMoveAllow = true;
@@ -42,16 +38,22 @@ public class TestEnemy : MonoBehaviour {
     public float nextRaomTime;
 
     [Header("RayCast")]
+    private Ray obstacleRay;
     private Ray forwardRay;
     private Ray backwardRay;
     private Ray attackRangeRay;
+    private RaycastHit2D obstacleHit;
     private RaycastHit2D forwardHit;
     private RaycastHit2D backwardHit;
     private RaycastHit2D attackRangeHit;
-    private RaycastHit2D roamRayHit;
+    private RaycastHit2D roamHit;
+
+    [Header("Layer")]
+    public LayerMask groundLayer;
+    public LayerMask playerLayer;
 
     void Awake() {
-        Invoke("Roam", 5);
+        Roam();
     }
 
     void Update() {
@@ -63,10 +65,13 @@ public class TestEnemy : MonoBehaviour {
             rb.velocity = new Vector2(roamNext * moveSpeed, rb.velocity.y);
         }
 
-        frontVec = new Vector2(rb.position.x + roamNext * 0.2f, rb.position.y);
-        Debug.DrawRay(frontVec, Vector3.down, new Color (0, 1, 0));
-        roamRayHit = Physics2D.Raycast(frontVec, Vector3.down, 1, groundLayer);
-        if(roamRayHit.collider == null) {
+        frontVec = new Vector2(rb.position.x + roamNext * 0.4f, rb.position.y);
+        roamHit = Physics2D.Raycast(frontVec, Vector3.down, 1, groundLayer);
+
+        obstacleHit = Physics2D.Raycast(rb.position, Vector2.right * roamNext, 0.52f, groundLayer);
+
+
+        if(roamHit.collider == null || obstacleHit.collider != null) {
             roamNext *= -1;
             CancelInvoke();
             Invoke("Roam", 5);
@@ -154,47 +159,54 @@ public class TestEnemy : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
-            case "zBullet" :
-                hp -= other.gameObject.GetComponent<zBullet>().zForce;
-                if(hp <= 0) {
-                    Destroy(gameObject);
+            case "Weapon" :
+                switch(other.gameObject.tag) {
+                    case "zBullet" :
+                        hp -= other.gameObject.GetComponent<zBullet>().zForce;
+                            if(hp <= 0) {
+                                Destroy(gameObject);
+                            }
+                        break;
+
+                    case "RepulsiveForce" :
+                        if(other.transform.position.x < this.transform.position.x) {
+                            rb.velocity = new Vector2(20f, rb.velocity.y);
+                        }
+                        else {
+                            rb.velocity = new Vector2(-20f, rb.velocity.y);
+                        }
+                        break;
+
+                    case "absoluteBind" :
+                        isMoveAllow = false;
+                        isBind = true;
+                        Debug.Log("Bind");
+                        break;
+
+                    case "blackholeBomb" :
+                        Debug.Log("Bomb");
+                        hp -= 5;
+                        break;
                 }
-                break;
-
-            case "RepulsiveForce" :
-                if(other.transform.position.x < this.transform.position.x) {
-                    rb.velocity = new Vector2(20f, rb.velocity.y);
-                }
-                else {
-                    rb.velocity = new Vector2(-20f, rb.velocity.y);
-                }
-                break;
-
-            case "absoluteBind" :
-                isMoveAllow = false;
-                isBind = true;
-                Debug.Log("Bind");
-                break;
-
-            case "blackholeBomb" :
-                Debug.Log("Bomb");
-                hp -= 5;
-                break;
-
+            break;
         }
     }
 
     void OnTriggerExit2D(Collider2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {
-            case "absoluteBind" :
-                bind = other.GetComponent<Bind>();
-                Invoke("Bind_Delay", bind.bindTime);
-                break;
+            case "Weapon" :
+                switch(other.gameObject.tag) {
+                    case "absoluteBind" :
+                        bind = other.GetComponent<Bind>();
+                        Invoke("Bind_Delay", bind.bindTime);
+                        break;
 
-            case "blackholeBomb" :
-                Debug.Log("Bomb");
-                hp -= 5;
-                break;
+                    case "blackholeBomb" :
+                        Debug.Log("Bomb");
+                        hp -= 5;
+                        break;
+                }
+            break;
         }
     }
 
@@ -218,7 +230,7 @@ public class TestEnemy : MonoBehaviour {
     }
     
     void Follow(GameObject player) {
-        if(isMoveAllow) {
+        if(isMoveAllow && roamHit.collider != null) {
             direction = (player.transform.position - this.transform.position).normalized;
             transform.Translate(direction * moveSpeed * Time.deltaTime);
         }
@@ -246,7 +258,6 @@ public class TestEnemy : MonoBehaviour {
 
     IEnumerator Attack() {
         isMoveAllow = false;
-        Debug.Log("Attack");
 
         yield return new WaitForSeconds(attckSpeed);
 

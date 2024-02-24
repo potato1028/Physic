@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 2798345898180363529}
   - component: {fileID: 3842871083461839406}
   - component: {fileID: 7462707879487941309}
-  m_Layer: 10
+  m_Layer: 7
   m_Name: BasicEnemy
-  m_TagString: Untagged
+  m_TagString: BasicEnemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -142,12 +142,6 @@ MonoBehaviour:
   box2D: {fileID: 7462707879487941309}
   bind: {fileID: 0}
   player_Component: {fileID: 0}
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 128
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 8
   isFacingRight: 0
   isMoveAllow: 1
   isAttackRange: 0
@@ -156,6 +150,12 @@ MonoBehaviour:
   isRoamAllow: 1
   roamNext: 0
   nextRaomTime: 0
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 8
 --- !u!61 &7462707879487941309
 BoxCollider2D:
   m_ObjectHideFlags: 0

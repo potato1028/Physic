@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 6106242777627464357}
   - component: {fileID: 787319650387220676}
   - component: {fileID: 9066390752467180862}
-  m_Layer: 13
+  m_Layer: 11
   m_Name: RepulsivePush
-  m_TagString: Untagged
+  m_TagString: repulsiveForce
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -171,7 +171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4038e097dad044864abaed27a9dde440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  waveSpeed: 0
+  repulsiveSpeed: 0
   Player: {fileID: 0}
   rb: {fileID: 6106242777627464357}
   playerControl: {fileID: 0}

@@ -23,7 +23,7 @@ public class TestPlayerControl : MonoBehaviour {
     //
     public float absoluteRunTime = 2.0f;
     public float blackholeRunTime = 2.0f;
-    public float dashRunTime = 0.15f;
+    public float dashRunTime = 0.2f;
     public float frictionRunTime = 0.5f;
     public float magneticRunTime  = 1.0f;
     //
@@ -57,17 +57,10 @@ public class TestPlayerControl : MonoBehaviour {
     [Header("Others_Component")]
     public Bind bind;
     public Bomb bomb;
-
-    [Header("Layer")]
-    public LayerMask groundLayer;
-    public LayerMask wallLayer;
-    public LayerMask springLayer;
-    public LayerMask enemyLayer;
-    public LayerMask enemyBulletLayer;
-    public LayerMask magnetLayer;
+    public MovePlat movePlat;
 
     [Header("Player_Condition")]
-    public bool[] isGroundeds = new bool[14];
+    public RaycastHit2D[] isGroundeds = new RaycastHit2D[14];
     public bool isGrounded;
     public bool isFacingRight;
     public bool[] isLeftWalls = new bool[10];
@@ -108,18 +101,17 @@ public class TestPlayerControl : MonoBehaviour {
     //
     public GameObject absoluteBind;
     public GameObject blackholeBomb;
+    public GameObject onPlat;
 
     [Header("RayCast")]
     Vector2 moveDirection;
     Vector2 groundRay;
     Vector2 wallRay;
 
-    private bool isPaused = false;
+    [Header("Layer")]
+    public LayerMask groundLayer;
 
-    void Awake() {
-        groundLayer = LayerMask.GetMask("Ground", "Wall", "Magnet_Red", "Magnet_Blue");
-        wallLayer = LayerMask.GetMask("Ground", "Wall", "Magnet_Red", "Magnet_Blue");
-    }
+    private bool isPaused = false;
 
 
     void Update() {
@@ -181,14 +173,14 @@ public class TestPlayerControl : MonoBehaviour {
             }
         }
 
-        //isGround
+        //isGround && isWall &&isOnPlat
         float groundRayThickness = -0.7f;
         float wallRayThickness = -1f;
 
         for(int i = 0; i < 14; i++) {
             groundRay = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
             isGroundeds[i] = Physics2D.Raycast(groundRay, Vector2.down, 1.01f, groundLayer);
-            if(isGroundeds[i]) {
+            if(isGroundeds[i].collider != null) {
                 isGrounded = true;
                 break;
             }
@@ -200,8 +192,8 @@ public class TestPlayerControl : MonoBehaviour {
 
         for(int i = 0; i < 10; i++) {
             wallRay = new Vector2(transform.position.x, transform.position.y + wallRayThickness);
-            isLeftWalls[i] = Physics2D.Raycast(wallRay, Vector2.left, 0.51f, wallLayer);
-            isRightWalls[i] = Physics2D.Raycast(wallRay, Vector2.right, 0.51f, wallLayer);
+            isLeftWalls[i] = Physics2D.Raycast(wallRay, Vector2.left, 0.51f, groundLayer);
+            isRightWalls[i] = Physics2D.Raycast(wallRay, Vector2.right, 0.51f, groundLayer);
 
             if(isLeftWalls[i]) {
                 isAttachedToLeftWall = true;
@@ -258,75 +250,83 @@ public class TestPlayerControl : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {
-            case "LexTertia" :
-                if(isMoveAllow) {
-                    Debug.Log("LexTertia");
-                    if(isMoveAllow) {
-                        rb.velocity = new Vector2(rb.velocity.x, 20f);
-                    }
-                }
-                break;
-
-            case "enemyBullet" :
-                if(!isHitting && isHitAllow && !isFrictioning) {
-                    Debug.Log("enemyBullet");
+            // case hostileOrgLayer :
+            //     switch(other.gameObeject.tag) {
                     
-                    if(other.transform.position.x < this.transform.position.x) {
-                        rb.velocity = new Vector2(7f, 4.5f);
+            //     }
+            //     break;
+
+            // case hostileObjLayer :
+            //     switch(other.gameObeject.tag) {
+
+            //     }
+            //     break;
+
+
+            // case friendlyOrgLayer :
+            //     switch(other.gameObeject.tag) {
+                
+            //     }
+            //     break;
+
+
+                case "friendlyObj" :
+                    switch(other.gameObject.tag) {
+                        case "Spring" :
+                            if(isMoveAllow) {
+                                rb.velocity = new Vector2(rb.velocity.x, 20f);
+                            }
+                            break;
+                        case "surefaceWall" :
+                            Debug.Log("sureface");
+                            isSurefacing = true;
+                            SureFace_Water();
+                            break;
+
+                        case "Magnet_Red" :
+                            if(isBlueCondition) {
+                                Debug.Log("Stop");
+                                rb.velocity = Vector2.zero;
+                                rb.gravityScale = 2f;
+                                Before_Magnet();
+                                break;
+                            }
+                            break;
+
+                        case "Magnet_Blue" :
+                            if(isRedCondition) {
+                                Debug.Log("Stop");
+                                rb.velocity = Vector2.zero;
+                                rb.gravityScale = 2f;
+                                Before_Magnet();
+                                break;
+                            }
+                            break;
                     }
-                    else {
-                        rb.velocity = new Vector2(-7f, 4.5f);
-                    }
-                    currentCentrifugalChargeForce = 0;
-                    StartCoroutine(hitDelay());
-                    StartCoroutine(moveDelay());
-                }
-                else if(isFrictioning) {
-                    Debug.Log("Dry_Friction");
-                }
-                break;
-
-            case "surefaceWall" :
-                Debug.Log("sureface");
-                isSurefacing = true;
-                SureFace_Water();
-                break;
-
-            case "Magnet_Red" :
-                if(isBlueCondition) {
-                    Debug.Log("Stop");
-                    rb.velocity = Vector2.zero;
-                    rb.gravityScale = 2f;
-                    Before_Magnet();
-                    break;
-                }
-                break;
-
-            case "Magnet_Blue" :
-                if(isRedCondition) {
-                    Debug.Log("Stop");
-                    rb.velocity = Vector2.zero;
-                    rb.gravityScale = 2f;
-                    Before_Magnet();
-                    break;
-                }
                 break;
             }        
     }
 
     void OnTriggerStay2D(Collider2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {
-            case "surefaceWall" :
-                isSurefacing = true;
+            case "friendlyObj" :
+                switch(other.gameObject.tag) {
+                    case "surefaceWall" :
+                        isSurefacing = true;
+                        break;
+                }
                 break;
         }
     }
 
     void OnTriggerExit2D(Collider2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {
-            case "surefaceWall" :
-                isSurefacing = false;
-                SureFace_Water();
+            case "friendlyObj" :
+                switch(other.gameObject.tag) {
+                    case "surefaceWall" :
+                        isSurefacing = true;
+                        break;
+                }
                 break;
         }
     }
@@ -334,22 +334,26 @@ public class TestPlayerControl : MonoBehaviour {
 
     void OnCollisionEnter2D(Collision2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
-            case "Enemy" :
-                if(!isHitting && isHitAllow && !isFrictioning) {
-                    Debug.Log("Enemy");
-                    if(other.transform.position.x < this.transform.position.x) {
-                        rb.velocity = new Vector2(7f, 4.5f);
-                    }
-                    else {
-                        rb.velocity = new Vector2(-7f, 4.5f);
-                    }
-                    currentCentrifugalChargeForce = 0;
-                    StartCoroutine(hitDelay());
-                    StartCoroutine(moveDelay());
-                }
+            case "hostileOrg" :
+                switch(other.gameObject.tag) {
+                    case "BasicEnemy" :
+                        if(!isHitting && isHitAllow && !isFrictioning) {
+                            Debug.Log("Enemy");
+                            if(other.transform.position.x < this.transform.position.x) {
+                                rb.velocity = new Vector2(7f, 4.5f);
+                            }
+                            else {
+                                rb.velocity = new Vector2(-7f, 4.5f);
+                            }
+                            currentCentrifugalChargeForce = 0;
+                            StartCoroutine(hitDelay());
+                            StartCoroutine(moveDelay());
+                        }
                 
-                else if(isFrictioning) {
-                    Debug.Log("Dry_Friction");
+                        else if(isFrictioning) {
+                            Debug.Log("Dry_Friction");
+                        }
+                        break;
                 }
                 break;
 
@@ -358,31 +362,31 @@ public class TestPlayerControl : MonoBehaviour {
                     Before_Dash();
                 }
                 break;
-            case "Wall" :
-                if(isDashing) {
-                    Before_Dash();
-                }
-                break;
-            }
+        }
     }
 
     void OnCollisionStay2D(Collision2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
-            case "Enemy" :
-                if(!isHitting && isHitAllow && !isFrictioning) {
-                    Debug.Log("Enemy");
-                    if(other.transform.position.x < this.transform.position.x) {
-                        rb.velocity = new Vector2(7f, 4.5f);
-                    }
-                    else {
-                        rb.velocity = new Vector2(-7f, 4.5f);
-                    }
-                    currentCentrifugalChargeForce = 0;
-                    StartCoroutine(hitDelay());
-                    StartCoroutine(moveDelay());
-                }
-                else if(isFrictioning) {
-                    Debug.Log("Dry_Friction");
+            case "hostileOrg" :
+                switch(other.gameObject.tag) {
+                    case "BasicEnemy" :
+                        if(!isHitting && isHitAllow && !isFrictioning) {
+                            Debug.Log("Enemy");
+                            if(other.transform.position.x < this.transform.position.x) {
+                                rb.velocity = new Vector2(7f, 4.5f);
+                            }
+                            else {
+                                rb.velocity = new Vector2(-7f, 4.5f);
+                            }
+                            currentCentrifugalChargeForce = 0;
+                            StartCoroutine(hitDelay());
+                            StartCoroutine(moveDelay());
+                        }
+                
+                        else if(isFrictioning) {
+                            Debug.Log("Dry_Friction");
+                        }
+                        break;
                 }
                 break;
             }

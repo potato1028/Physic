@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 3034238724004115582}
   - component: {fileID: 7635401391995333351}
   - component: {fileID: 2008053941866301897}
-  m_Layer: 17
+  m_Layer: 10
   m_Name: RedMagnet
-  m_TagString: Untagged
+  m_TagString: Magnet_Red
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
