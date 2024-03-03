@@ -13,7 +13,12 @@ public class MovePlat : MonoBehaviour {
     public Rigidbody2D rb;
 
     void Start() {
-        StartCoroutine(moveLR());
+        if(this.gameObject.tag == "LRPlat") {
+            StartCoroutine(moveLR());
+        }
+        else {
+            StartCoroutine(moveUD());
+        }
     }
 
     IEnumerator moveLR() {
@@ -40,5 +45,27 @@ public class MovePlat : MonoBehaviour {
         StartCoroutine(moveLR());
     }
 
+    IEnumerator moveUD() {
+        moveVector = new Vector2(0, -moveSpeed);
+        rb.velocity = moveVector;
 
+        yield return new WaitForSeconds(moveTime);
+
+        moveVector = Vector2.zero;
+        rb.velocity = moveVector;
+
+        yield return new WaitForSeconds(stopTime);
+
+        moveVector = new Vector2(0, moveSpeed);
+        rb.velocity = moveVector;
+
+        yield return new WaitForSeconds(moveTime);
+        
+        moveVector = Vector2.zero;
+        rb.velocity = moveVector;
+
+        yield return new WaitForSeconds(stopTime);
+
+        StartCoroutine(moveUD());
+    }
 }

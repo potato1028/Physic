@@ -62,7 +62,6 @@ public class TestPlayerControl : MonoBehaviour {
     [Header("Others_Component")]
     public Bind bind;
     public Bomb bomb;
-    public MovePlat movePlat;
 
     [Header("Player_Condition")]
     public RaycastHit2D[] isGroundeds;
@@ -121,15 +120,14 @@ public class TestPlayerControl : MonoBehaviour {
     private bool isPaused = false;
 
     void Start() {
-        groundLayer = LayerMask.GetMask("Ground", "Wall");
-        wallLayer = LayerMask.GetMask("Ground", "Wall");
+        groundLayer = LayerMask.GetMask("Ground", "Wall", "Plat");
+        wallLayer = LayerMask.GetMask("Ground", "Wall", "Plat");
     }
 
 
     void Update() {
         Jump();
         Flip();
-        OnPlat();
         isPlayerGround();
 
         Absolute_Zero();
@@ -281,13 +279,6 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
-    void OnPlat() {
-        if(isOnPlat) {
-            Debug.Log("On Plat");
-            rb.velocity = (movePlat.moveVector * 30);
-        }
-    }
-
     #endregion
 
 
@@ -307,10 +298,16 @@ public class TestPlayerControl : MonoBehaviour {
                 if(isDashing) {
                     Before_Dash();
                 }
+                break;
+
+            case "Plat" :
                 switch(other.gameObject.tag) {
-                    case "Plat" :
-                        movePlat = other.gameObject.GetComponent<MovePlat>();
-                        isOnPlat = true;
+                    case "LRPlat" :
+                        Debug.Log("On" + other.gameObject.tag);
+                        break;
+                    
+                    case "UDPlat" :
+                        Debug.Log("On" + other.gameObject.tag);
                         break;
                 }
                 break;
@@ -335,7 +332,6 @@ public class TestPlayerControl : MonoBehaviour {
                 switch(other.gameObject.tag) {
                     case "Plat" :
                         isOnPlat = false;
-                        movePlat = null;
                         break;
                 }
                 break;

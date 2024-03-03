@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Ground
   - Wall
-  - Plat
   - BasicEnemy
   - enemyBullet
   - NPC
@@ -24,6 +23,8 @@ TagManager:
   - Lava
   - blackholeBomb
   - Laser
+  - LRPlat
+  - UDPlat
   layers:
   - Default
   - TransparentFX
@@ -38,7 +39,7 @@ TagManager:
   - friendlyObj
   - Weapon
   - Wall
-  - 
+  - Plat
   - 
   - 
   - 
