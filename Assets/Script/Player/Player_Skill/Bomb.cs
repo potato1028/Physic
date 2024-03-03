@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Bomb : MonoBehaviour {
     [Header("Status")]
+    public float bombDamage = 5f;
     public float bombSpeed;
     public float bombTime;
     public float maxHeight = 50.0f;

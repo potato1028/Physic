@@ -26,4 +26,14 @@ public class Magnet_Blue : MonoBehaviour {
             } 
         }
     }
+
+    void OnCollisionEnter2D(Collision2D other) {
+        if(LayerMask.LayerToName(other.gameObject.layer) == "Player") {
+            if(testPlayerControl.isRedCondition) {
+                testPlayerControl.rb.velocity = Vector2.zero;
+                testPlayerControl.rb.gravityScale = 2f;
+                testPlayerControl.Before_Magnet();
+            }
+        }
+    }
 }

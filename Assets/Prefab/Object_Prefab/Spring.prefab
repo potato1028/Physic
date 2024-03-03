@@ -99,8 +99,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce9ccd7e4ffde4f47866de1791d76884, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boxCollider2D: {fileID: 6258383251417755106}
-  sp: {fileID: 3182636996394205261}
+  springX: 0
+  springY: 20
+  Player: {fileID: 0}
+  testPlayerControl: {fileID: 0}
 --- !u!50 &4904073745424365531
 Rigidbody2D:
   serializedVersion: 4

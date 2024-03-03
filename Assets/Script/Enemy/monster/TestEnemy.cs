@@ -4,18 +4,23 @@ using UnityEngine;
 
 public class TestEnemy : MonoBehaviour {
     [Header("Status")]
+    public int forwardRayCount = 14;
+    public int facingIndex;
+    public float forwardRayDistance = 3.5f;
+    public float backwardRayDistance = 0.8f;
+    public float attackRayDistance = 0.8f;
+    public float angleDetect;
+    public float angleDetectValue = 5f;
+    public List<RaycastHit2D> forwardHitResults = new List<RaycastHit2D>();
     public float horiaontalInput;
     public float hp = 10;
     public float moveSpeed = 2.0f;
-    public float attckSpeed = 0.8f;
-    public float forwardDistance = 3.0f;
-    public float backwardDistance = 1.5f;
-    public float attackRangeDistance = 0.8f;
+    public float attackDelayTime = 0.8f;
+    public float attackReadyTime = 0.2f;
+    public float crashDamage = 1f;
     //
-    public Vector3 newScale;
-    public Vector3 direction;
-    public Vector2 currentPosition;
-    public Vector2 frontVec;
+    public Vector2 crashPush;
+    public Vector2 roamVec;
 
     [Header("Enemy_Component")]
     public Rigidbody2D rb;
@@ -24,128 +29,93 @@ public class TestEnemy : MonoBehaviour {
 
     [Header("Others_Component")]
     public Bind bind;
+    public Bomb bomb;
     public TestPlayerControl player_Component;
 
     [Header("Condition")]
     public bool isFacingRight = false;
     public bool isMoveAllow = true;
-    public bool isAttackRange = false;
-    public bool isDetectionPlayer = false;
-    public bool isBind = false;
+    public bool isBinded = false;
+    public bool isDetectPlayer = false;
     public bool isRoamAllow = true;
+    public bool isFollowing = false;
+    public bool isAttacking = false;
     //
     public int roamNext;
     public float nextRaomTime;
+    public float DetectTime = 5f;
 
     [Header("RayCast")]
-    private Ray obstacleRay;
-    private Ray forwardRay;
-    private Ray backwardRay;
-    private Ray attackRangeRay;
     private RaycastHit2D obstacleHit;
-    private RaycastHit2D forwardHit;
-    private RaycastHit2D backwardHit;
-    private RaycastHit2D attackRangeHit;
     private RaycastHit2D roamHit;
+    private RaycastHit2D backwardHit;
+    private RaycastHit2D attackHit;
+
+    [Header("GameObject")]
+    public GameObject Player;
 
     [Header("Layer")]
     public LayerMask groundLayer;
     public LayerMask playerLayer;
 
     void Awake() {
-        Roam();
+        Roam_Next();
     }
 
     void Update() {
-        DetectionPlayer();
-    }
-
-    void FixedUpdate() {
-        if(!isDetectionPlayer && isMoveAllow) {
-            rb.velocity = new Vector2(roamNext * moveSpeed, rb.velocity.y);
+        if(!isDetectPlayer) {
+            Forward_DetectPlayer();
+            Backward_DetectPlayer();
         }
-
-        frontVec = new Vector2(rb.position.x + roamNext * 0.4f, rb.position.y);
-        roamHit = Physics2D.Raycast(frontVec, Vector3.down, 1, groundLayer);
-
-        obstacleHit = Physics2D.Raycast(rb.position, Vector2.right * roamNext, 0.52f, groundLayer);
-
-
-        if(roamHit.collider == null || obstacleHit.collider != null) {
-            roamNext *= -1;
-            CancelInvoke();
-            Invoke("Roam", 5);
-        }
+        Roam();
+        Following_Player();
     }
 
     #region Collider
 
-    void DetectionPlayer() {
-        if(isFacingRight && !isBind) {
-            forwardRay = new Ray(transform.position, transform.right);
-            backwardRay = new Ray(transform.position, -transform.right);
-            attackRangeRay = new Ray(transform.position, transform.right);
-        }
-        else if(!isFacingRight && !isBind) {
-            forwardRay = new Ray(transform.position, -transform.right);
-            backwardRay = new Ray(transform.position, transform.right);
-            attackRangeRay = new Ray(transform.position, -transform.right);
-        }
-        
-
-        forwardHit = Physics2D.Raycast(forwardRay.origin, forwardRay.direction, forwardDistance, playerLayer);
-        backwardHit = Physics2D.Raycast(backwardRay.origin, backwardRay.direction, backwardDistance, playerLayer);
-        attackRangeHit = Physics2D.Raycast(attackRangeRay.origin, attackRangeRay.direction, attackRangeDistance, playerLayer);
-
-        if(forwardHit.collider && !isBind) {
-            CancelInvoke();
-            Follow(forwardHit.collider.gameObject);
-            isDetectionPlayer = true;
-            if(forwardDistance <= 3.0f) {
-                forwardDistance *= 1.5f;
-                backwardDistance *= 1.5f;
-            }
-        }
-        else if(backwardHit.collider && !isBind) {
-            Flip();
-        }
-        else {
-            Invoke("Roam_Delay", 1f);
-        }
-
-        if(!forwardHit.collider && !isDetectionPlayer && !isBind) {
-            if(forwardDistance > 3.0f) {
-                forwardDistance /= 1.5f;
-                backwardDistance /= 1.5f;
-            }
-        }
-        
-        if(attackRangeHit.collider && !isBind) {
-            StartCoroutine(Attack());
-        }
-    }
-
     void OnCollisionEnter2D(Collision2D other) {
-        switch(LayerMask.LayerToName(other.gameObject.layer)) {    
-            case "Player" :
-                rb.constraints |= RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY;
-                player_Component = other.gameObject.GetComponent<TestPlayerControl>();
-                if(player_Component.isMagneting) {
-                    hp--;
+        if(LayerMask.LayerToName(other.gameObject.layer) == "Player") {    
+            rb.constraints |= RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY;
+            player_Component = other.gameObject.GetComponent<TestPlayerControl>();
+            
+            if(player_Component.isMagneting) {
+                hp--;
+            }
+
+            if(!player_Component.isHitting && player_Component.isHitAllow && !player_Component.isFrictioning) {
+                player_Component.Hp -= crashDamage;
+                player_Component.rb.velocity = Vector2.zero;
+
+                if(other.transform.position.x >= this.transform.position.x) {
+                    player_Component.rb.velocity = crashPush;
                 }
-                break;
+                else {
+                    player_Component.rb.velocity = new Vector2(crashPush.x * -1, crashPush.y);
+                }
+            }
         }
     }
 
     void OnCollisionStay2D(Collision2D other) {
-        switch(LayerMask.LayerToName(other.gameObject.layer)) {    
-            case "Player" :
-                rb.constraints |= RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY;
-                player_Component = other.gameObject.GetComponent<TestPlayerControl>();
-                if(player_Component.isMagneting) {
-                    hp--;
+        if(LayerMask.LayerToName(other.gameObject.layer) == "Player") {    
+            rb.constraints |= RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezePositionY;
+            player_Component = other.gameObject.GetComponent<TestPlayerControl>();
+            
+            if(player_Component.isMagneting) {
+                hp--;
+            }
+
+            if(!player_Component.isHitting && player_Component.isHitAllow && !player_Component.isFrictioning) {
+                player_Component.Hp -= crashDamage;
+                player_Component.rb.velocity = Vector2.zero;
+
+                if(other.transform.position.x >= this.transform.position.x) {
+                    player_Component.rb.velocity = crashPush;
                 }
-                break;
+                else {
+                    player_Component.rb.velocity = new Vector2(crashPush.x * -1, crashPush.y);
+                }
+            }
         }
     }
 
@@ -179,13 +149,13 @@ public class TestEnemy : MonoBehaviour {
 
                     case "absoluteBind" :
                         isMoveAllow = false;
-                        isBind = true;
+                        isBinded = true;
                         Debug.Log("Bind");
                         break;
 
                     case "blackholeBomb" :
+                        hp -= other.gameObject.GetComponent<Bomb>().bombDamage;
                         Debug.Log("Bomb");
-                        hp -= 5;
                         break;
                 }
             break;
@@ -214,59 +184,144 @@ public class TestEnemy : MonoBehaviour {
 
     #region Interaction
 
-    void Flip() {
-        if(!isFacingRight && isMoveAllow) {
-            Vector3 newScale = transform.localScale;
-            newScale.x *= -1;
-            transform.localScale = newScale;
-            isFacingRight = !isFacingRight;
-        }
-        else if(isFacingRight && isMoveAllow) {
-            Vector3 newScale = transform.localScale;
-            newScale.x *= -1;
-            transform.localScale = newScale;
-            isFacingRight = !isFacingRight;
-        }
-    }
-    
-    void Follow(GameObject player) {
-        if(isMoveAllow && roamHit.collider != null) {
-            direction = (player.transform.position - this.transform.position).normalized;
-            transform.Translate(direction * moveSpeed * Time.deltaTime);
-        }
-    }
-
     void Bind_Delay() {
         isMoveAllow = true;
-        isBind = false;
-    }
-
-    void Roam_Delay() {
-        isDetectionPlayer = false;
+        isBinded = false;
     }
 
     void Roam() {
-        roamNext = Random.Range(-1, 2);
-        nextRaomTime = Random.Range(6f, 9f);
+        if(isMoveAllow && !isDetectPlayer) {
+            rb.velocity = new Vector2(roamNext * moveSpeed, rb.velocity.y);
+        }
+        roamVec = new Vector2(rb.position.x + roamNext * 0.4f, rb.position.y);
 
-        Invoke("Roam", nextRaomTime);
+        roamHit = Physics2D.Raycast(roamVec, Vector3.down, 1, groundLayer);
+        obstacleHit = Physics2D.Raycast(rb.position, Vector2.right * roamNext, 0.52f, groundLayer);
+
+
+        if(roamHit.collider == null || obstacleHit.collider != null) {
+            roamNext *= -1;
+            CancelInvoke();
+            Invoke("Roam_Next", 5);
+        }
+    }
+
+    void Roam_Next() {
+        roamNext = Random.Range(-1, 2);
+        nextRaomTime = Random.Range(5f, 8f);
+
+        if(roamNext < 0) {
+            isFacingRight = false;
+        }
+        else {
+            isFacingRight = true;
+        }
+
+        Invoke("Roam_Next", nextRaomTime);
+    }
+
+    bool Forward_DetectPlayer() {
+        if(roamNext == 0) {
+            if(isFacingRight) {
+                facingIndex = 1;
+            }
+            else {
+                facingIndex = -1;
+            }
+        }
+        else {
+            facingIndex = roamNext;
+        }
+
+        for(int i = 0; i < forwardRayCount; i++) {
+            angleDetect = i * angleDetectValue;
+            Vector2 direction = new Vector2(Mathf.Cos(angleDetect * Mathf.Deg2Rad) * facingIndex, Mathf.Sin(angleDetect * Mathf.Deg2Rad));
+            RaycastHit2D[] forwardHit = Physics2D.RaycastAll(transform.position, direction, forwardRayDistance, playerLayer);
+                
+            Debug.DrawRay(transform.position, direction * forwardRayDistance, Color.green, 0.3f);
+            forwardHitResults.AddRange(forwardHit);
+        }
+
+        foreach (RaycastHit2D forwardHit in forwardHitResults) {
+            if(forwardHit.collider != null) {
+                Debug.Log("DetectPlayer");
+                Player = forwardHit.collider.gameObject;
+                StartCoroutine(Follow_Condition());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void Backward_DetectPlayer() {
+        backwardHit = Physics2D.Raycast(transform.position, -facingIndex * Vector2.right, backwardRayDistance, playerLayer);
+        Debug.DrawRay(transform.position, -facingIndex * Vector2.right * backwardRayDistance, Color.green, 0.3f);
+        if(backwardHit.collider != null) {
+            roamNext *= -1;
+        }
+    }
+
+    IEnumerator Follow_Condition() {
+        Debug.Log("Follow_Conndition");
+        forwardHitResults.Clear();
+        isFollowing = true;
+        isDetectPlayer = true;
+
+        yield return new WaitForSeconds(DetectTime);
+
+        if(Forward_DetectPlayer()) {
+            StartCoroutine(Follow_Condition());
+        }
+        else {
+            isFollowing = false;
+            isDetectPlayer = false;
+        }
+    }
+
+    void Following_Player() {
+        if(isFollowing) {
+            roamVec = new Vector2(rb.position.x + roamNext * 0.4f, rb.position.y);
+            roamHit = Physics2D.Raycast(roamVec, Vector3.down, 1, groundLayer);
+
+
+            if(roamHit.collider != null && isMoveAllow) {
+                Debug.Log("Move");
+                if(Player.transform.position.x <= this.transform.position.x) {
+                    rb.velocity = new Vector2(moveSpeed * -1.5f, rb.velocity.y);
+                    attackHit = Physics2D.Raycast(transform.position, -Vector2.right, attackRayDistance, playerLayer);
+                }
+                else {
+                    rb.velocity = new Vector2(moveSpeed * 1.5f, rb.velocity.y);
+                    attackHit = Physics2D.Raycast(transform.position, Vector2.right, attackRayDistance, playerLayer);
+                }
+            }
+
+            if(attackHit.collider) {
+                rb.velocity = Vector2.zero;
+                StartCoroutine(Attack_Player());
+            }
+        }   
     }
 
     #endregion
 
     #region Attack
 
-    IEnumerator Attack() {
+    IEnumerator Attack_Player() {
+        isFollowing = false;
         isMoveAllow = false;
+        isAttacking = true;
 
-        yield return new WaitForSeconds(attckSpeed);
+        yield return new WaitForSeconds(attackReadyTime);
 
-        if(attackRangeHit.collider != null) {
-            StartCoroutine(Attack());
-        }
-        else {
-            isMoveAllow = true;
-        }
+        Debug.Log("Attack");
+
+        yield return new WaitForSeconds(attackDelayTime);
+
+        isFollowing = true;
+        isMoveAllow = true;
+        isAttacking = false;
     }
 
     #endregion

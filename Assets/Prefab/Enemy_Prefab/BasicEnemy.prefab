@@ -126,27 +126,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0a26006dd6f547f3b0300883db5b59b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  forwardRayCount: 14
+  facingIndex: -1
+  forwardRayDistance: 3.5
+  backwardRayDistance: 1.5
+  angleDetect: 0
+  angleDetectValue: 5
   horiaontalInput: 0
   hp: 10
   moveSpeed: 2
   attckSpeed: 0.8
-  forwardDistance: 3
-  backwardDistance: 1.5
-  attackRangeDistance: 0.8
+  crashDamage: 1
   newScale: {x: 0, y: 0, z: 0}
   direction: {x: 0, y: 0, z: 0}
   currentPosition: {x: 0, y: 0}
-  frontVec: {x: 0, y: 0}
+  crashPush: {x: 7, y: 4}
+  roamVec: {x: 0, y: 0}
   rb: {fileID: 2798345898180363529}
   sp: {fileID: 6817956950356118795}
   box2D: {fileID: 7462707879487941309}
   bind: {fileID: 0}
+  bomb: {fileID: 0}
   player_Component: {fileID: 0}
   isFacingRight: 0
   isMoveAllow: 1
-  isAttackRange: 0
-  isDetectionPlayer: 0
-  isBind: 0
+  isBinded: 0
+  isDetectPlayer: 0
+  isFollowing: 0
   isRoamAllow: 1
   roamNext: 0
   nextRaomTime: 0

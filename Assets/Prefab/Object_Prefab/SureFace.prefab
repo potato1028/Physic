@@ -96,6 +96,7 @@ GameObject:
   - component: {fileID: 6708316819562600294}
   - component: {fileID: 7604474071520999101}
   - component: {fileID: 3088911209187832157}
+  - component: {fileID: -8993004165196479150}
   m_Layer: 6
   m_Name: SureFace
   m_TagString: Ground
@@ -243,3 +244,17 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.5, y: 3}
   m_EdgeRadius: 0
+--- !u!114 &-8993004165196479150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5827953209858152845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 273e0fd1797804db2abf6384e8abd709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Player: {fileID: 0}
+  testPlayerControl: {fileID: 0}

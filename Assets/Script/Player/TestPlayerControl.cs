@@ -2,14 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
+
 public class TestPlayerControl : MonoBehaviour {
     [Header("Player_Status")]
     public float horiaontalInput;
     public float verticalInput;
     public float Hp;
     public float moveSpeed = 5f;
-    public float jumpForce = 10f;
+    public float jumpForce = 12f;
     public float dashForce = 30f;
+    public int groundRayCount;
+    public float groundRayThickness;
+    public float wallRayThickness;
     //
     public float absoluteDelayTime = 5.0f;
     public float blackholeDelayTime = 5.0f;
@@ -60,13 +65,14 @@ public class TestPlayerControl : MonoBehaviour {
     public MovePlat movePlat;
 
     [Header("Player_Condition")]
-    public RaycastHit2D[] isGroundeds = new RaycastHit2D[14];
-    public bool isGrounded;
-    public bool isFacingRight;
+    public RaycastHit2D[] isGroundeds;
     public bool[] isLeftWalls = new bool[10];
     public bool[] isRightWalls = new bool[10];
+    public bool isGrounded;
+    public bool isFacingRight;
     public bool isAttachedToLeftWall;
     public bool isAttachedToRightWall;
+    public bool isOnPlat = false;
     public bool isAttachedMagnet = false;
     //
     public bool isAbsoluteAllow = true;
@@ -105,18 +111,26 @@ public class TestPlayerControl : MonoBehaviour {
 
     [Header("RayCast")]
     Vector2 moveDirection;
-    Vector2 groundRay;
-    Vector2 wallRay;
+    Vector2 groundRayVec;
+    Vector2 wallRayVec;
 
     [Header("Layer")]
     public LayerMask groundLayer;
+    public LayerMask wallLayer;
 
     private bool isPaused = false;
+
+    void Start() {
+        groundLayer = LayerMask.GetMask("Ground", "Wall");
+        wallLayer = LayerMask.GetMask("Ground", "Wall");
+    }
 
 
     void Update() {
         Jump();
         Flip();
+        OnPlat();
+        isPlayerGround();
 
         Absolute_Zero();
         BlackHole_Bomb();
@@ -174,12 +188,35 @@ public class TestPlayerControl : MonoBehaviour {
         }
 
         //isGround && isWall &&isOnPlat
-        float groundRayThickness = -0.7f;
-        float wallRayThickness = -1f;
+    }
 
-        for(int i = 0; i < 14; i++) {
-            groundRay = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
-            isGroundeds[i] = Physics2D.Raycast(groundRay, Vector2.down, 1.01f, groundLayer);
+    void isPlayerGround() {
+        wallRayThickness = -0.8f;
+        if(!isAttachedToLeftWall && !isAttachedToRightWall) {
+            groundRayThickness = -1.0f;
+            groundRayCount = 21;
+            isGroundeds = new RaycastHit2D[groundRayCount];
+        }
+        else if(isAttachedToLeftWall) {
+            groundRayThickness = -0.4f;
+            groundRayCount = 11;
+            isGroundeds = new RaycastHit2D[groundRayCount];
+        }
+        else if(isAttachedToRightWall) {
+            groundRayThickness = -0.6f;
+            groundRayCount = 11;
+            isGroundeds = new RaycastHit2D[groundRayCount];
+        }
+        else if(isAttachedToLeftWall && isAttachedToRightWall) {
+            groundRayThickness = -0.4f;
+            groundRayCount = 9;
+            isGroundeds = new RaycastHit2D[groundRayCount];
+        }
+
+        for(int i = 0; i < groundRayCount; i++) {
+            groundRayVec = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
+            isGroundeds[i] = Physics2D.Raycast(groundRayVec, Vector2.down, 1.01f, groundLayer);
+            Debug.DrawRay(groundRayVec, Vector2.down * 1.01f, Color.green);
             if(isGroundeds[i].collider != null) {
                 isGrounded = true;
                 break;
@@ -190,11 +227,12 @@ public class TestPlayerControl : MonoBehaviour {
             groundRayThickness += 0.1f;
         }
 
-        for(int i = 0; i < 10; i++) {
-            wallRay = new Vector2(transform.position.x, transform.position.y + wallRayThickness);
-            isLeftWalls[i] = Physics2D.Raycast(wallRay, Vector2.left, 0.51f, groundLayer);
-            isRightWalls[i] = Physics2D.Raycast(wallRay, Vector2.right, 0.51f, groundLayer);
-
+        for(int i = 0; i < 8; i++) {
+            wallRayVec = new Vector2(transform.position.x, transform.position.y + wallRayThickness);
+            isLeftWalls[i] = Physics2D.Raycast(wallRayVec, Vector2.left, 0.51f, wallLayer);
+            isRightWalls[i] = Physics2D.Raycast(wallRayVec, Vector2.right, 0.51f, wallLayer);
+            Debug.DrawRay(wallRayVec, Vector2.left * 0.51f, Color.green);
+            Debug.DrawRay(wallRayVec, Vector2.right * 0.51f, Color.green);
             if(isLeftWalls[i]) {
                 isAttachedToLeftWall = true;
                 break;
@@ -243,116 +281,24 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
+    void OnPlat() {
+        if(isOnPlat) {
+            Debug.Log("On Plat");
+            rb.velocity = (movePlat.moveVector * 30);
+        }
+    }
+
     #endregion
 
 
     #region Interaction
-
-    void OnTriggerEnter2D(Collider2D other) {
-        switch(LayerMask.LayerToName(other.gameObject.layer)) {
-            // case hostileOrgLayer :
-            //     switch(other.gameObeject.tag) {
-                    
-            //     }
-            //     break;
-
-            // case hostileObjLayer :
-            //     switch(other.gameObeject.tag) {
-
-            //     }
-            //     break;
-
-
-            // case friendlyOrgLayer :
-            //     switch(other.gameObeject.tag) {
-                
-            //     }
-            //     break;
-
-
-                case "friendlyObj" :
-                    switch(other.gameObject.tag) {
-                        case "Spring" :
-                            if(isMoveAllow) {
-                                rb.velocity = new Vector2(rb.velocity.x, 20f);
-                            }
-                            break;
-                        case "surefaceWall" :
-                            Debug.Log("sureface");
-                            isSurefacing = true;
-                            SureFace_Water();
-                            break;
-
-                        case "Magnet_Red" :
-                            if(isBlueCondition) {
-                                Debug.Log("Stop");
-                                rb.velocity = Vector2.zero;
-                                rb.gravityScale = 2f;
-                                Before_Magnet();
-                                break;
-                            }
-                            break;
-
-                        case "Magnet_Blue" :
-                            if(isRedCondition) {
-                                Debug.Log("Stop");
-                                rb.velocity = Vector2.zero;
-                                rb.gravityScale = 2f;
-                                Before_Magnet();
-                                break;
-                            }
-                            break;
-                    }
-                break;
-            }        
-    }
-
-    void OnTriggerStay2D(Collider2D other) {
-        switch(LayerMask.LayerToName(other.gameObject.layer)) {
-            case "friendlyObj" :
-                switch(other.gameObject.tag) {
-                    case "surefaceWall" :
-                        isSurefacing = true;
-                        break;
-                }
-                break;
-        }
-    }
-
-    void OnTriggerExit2D(Collider2D other) {
-        switch(LayerMask.LayerToName(other.gameObject.layer)) {
-            case "friendlyObj" :
-                switch(other.gameObject.tag) {
-                    case "surefaceWall" :
-                        isSurefacing = true;
-                        break;
-                }
-                break;
-        }
-    }
-
 
     void OnCollisionEnter2D(Collision2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
             case "hostileOrg" :
                 switch(other.gameObject.tag) {
                     case "BasicEnemy" :
-                        if(!isHitting && isHitAllow && !isFrictioning) {
-                            Debug.Log("Enemy");
-                            if(other.transform.position.x < this.transform.position.x) {
-                                rb.velocity = new Vector2(7f, 4.5f);
-                            }
-                            else {
-                                rb.velocity = new Vector2(-7f, 4.5f);
-                            }
-                            currentCentrifugalChargeForce = 0;
-                            StartCoroutine(hitDelay());
-                            StartCoroutine(moveDelay());
-                        }
-                
-                        else if(isFrictioning) {
-                            Debug.Log("Dry_Friction");
-                        }
+                        Hit();
                         break;
                 }
                 break;
@@ -360,6 +306,12 @@ public class TestPlayerControl : MonoBehaviour {
             case "Ground" :
                 if(isDashing) {
                     Before_Dash();
+                }
+                switch(other.gameObject.tag) {
+                    case "Plat" :
+                        movePlat = other.gameObject.GetComponent<MovePlat>();
+                        isOnPlat = true;
+                        break;
                 }
                 break;
         }
@@ -370,26 +322,53 @@ public class TestPlayerControl : MonoBehaviour {
             case "hostileOrg" :
                 switch(other.gameObject.tag) {
                     case "BasicEnemy" :
-                        if(!isHitting && isHitAllow && !isFrictioning) {
-                            Debug.Log("Enemy");
-                            if(other.transform.position.x < this.transform.position.x) {
-                                rb.velocity = new Vector2(7f, 4.5f);
-                            }
-                            else {
-                                rb.velocity = new Vector2(-7f, 4.5f);
-                            }
-                            currentCentrifugalChargeForce = 0;
-                            StartCoroutine(hitDelay());
-                            StartCoroutine(moveDelay());
-                        }
-                
-                        else if(isFrictioning) {
-                            Debug.Log("Dry_Friction");
-                        }
+                        Hit();
+                        break;
+                }
+                break;
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D other) {
+        switch(LayerMask.LayerToName(other.gameObject.layer)) {
+            case "Ground" :
+                switch(other.gameObject.tag) {
+                    case "Plat" :
+                        isOnPlat = false;
+                        movePlat = null;
                         break;
                 }
                 break;
             }
+    }
+
+    void OnTriggerEnter2D(Collider2D other) {
+        switch(LayerMask.LayerToName(other.gameObject.layer)) {    
+            case "hostileObj" :
+                switch(other.gameObject.tag) {
+                    case "Laser" :
+                        Hit();
+                        break;
+                }
+                break;
+        }
+    }
+
+    void Hit() {
+        if(isDashing) {
+            isDashing = false;
+            rb.gravityScale = 2f;
+            Invoke("Before_Dash", moveDelayTime);
+        }
+
+        if(!isHitting && isHitAllow && !isFrictioning) {
+            currentCentrifugalChargeForce = 0;
+            StartCoroutine(hitDelay());
+            StartCoroutine(moveDelay());
+        }
+        else if(isFrictioning) {
+            Debug.Log("Dry_Friction");
+        }
     }
 
     IEnumerator hitDelay() {
@@ -613,7 +592,7 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
-    void SureFace_Water() {
+     public void SureFace_Water() {
         if(isSurefacing && !isMagneting) {
             Debug.Log("Gravity 0");
             rb.velocity = new Vector2(rb.velocity.x, 0f);
@@ -703,7 +682,7 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
-    void After_Absolute() {
+    public void After_Absolute() {
         isAbsoluting = true;
 
         isBlackHoleAllow = false;
@@ -715,7 +694,7 @@ public class TestPlayerControl : MonoBehaviour {
 
     }
 
-    void Before_Absolute() {
+    public void Before_Absolute() {
         isAbsoluting = false;
 
         isBlackHoleAllow = true;
@@ -739,7 +718,7 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
-    void After_BalckHole() {
+    public void After_BalckHole() {
         isBlackHoling = true;
 
         isAbsoluteAllow = false;
@@ -750,7 +729,7 @@ public class TestPlayerControl : MonoBehaviour {
         isSurefaceAllow = false;
     }
 
-    void Before_BlackHole() {
+    public void Before_BlackHole() {
         isBlackHoling = false;
 
         isAbsoluteAllow = true;
@@ -771,7 +750,7 @@ public class TestPlayerControl : MonoBehaviour {
         }
     }
 
-    void After_Dash() {
+    public void After_Dash() {
         isDashing = true;
 
         isAbsoluteAllow = false;
@@ -784,7 +763,7 @@ public class TestPlayerControl : MonoBehaviour {
         isSurefaceAllow = true;
     }
 
-    void Before_Dash() {
+    public void Before_Dash() {
         rb.velocity = Vector2.zero;
         rb.gravityScale = 2f;
         isDashing = false;
@@ -896,7 +875,7 @@ public class TestPlayerControl : MonoBehaviour {
         rb.gravityScale = 2f;
     }
 
-    void After_Magnet() {
+    public void After_Magnet() {
         isMagneting = true;
         capsule2D.isTrigger = true;
 
@@ -909,7 +888,7 @@ public class TestPlayerControl : MonoBehaviour {
         isSurefaceAllow = false;
     }
 
-    void Before_Magnet() {
+    public void Before_Magnet() {
         isMagneting = false;
         capsule2D.isTrigger = false;
 
