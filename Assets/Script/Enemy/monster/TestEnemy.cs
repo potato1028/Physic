@@ -258,6 +258,8 @@ public class TestEnemy : MonoBehaviour {
         backwardHit = Physics2D.Raycast(transform.position, -facingIndex * Vector2.right, backwardRayDistance, playerLayer);
         Debug.DrawRay(transform.position, -facingIndex * Vector2.right * backwardRayDistance, Color.green, 0.3f);
         if(backwardHit.collider != null) {
+            Player = backwardHit.collider.gameObject;
+            StartCoroutine(Follow_Condition());
             roamNext *= -1;
         }
     }

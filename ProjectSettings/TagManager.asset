@@ -25,6 +25,8 @@ TagManager:
   - Laser
   - LRPlat
   - UDPlat
+  - Plat
+  - FlyingEnemy
   layers:
   - Default
   - TransparentFX

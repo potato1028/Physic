@@ -291,6 +291,9 @@ public class TestPlayerControl : MonoBehaviour {
                     case "BasicEnemy" :
                         Hit();
                         break;
+                    case "FlyingEnemy" :
+                        Hit();
+                        break;
                 }
                 break;
 
@@ -319,6 +322,9 @@ public class TestPlayerControl : MonoBehaviour {
             case "hostileOrg" :
                 switch(other.gameObject.tag) {
                     case "BasicEnemy" :
+                        Hit();
+                        break;
+                    case "FlyingEnemy" :
                         Hit();
                         break;
                 }

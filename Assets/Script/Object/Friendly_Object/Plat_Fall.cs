@@ -65,9 +65,9 @@ public class Plat_Fall : MonoBehaviour {
     IEnumerator Delay_Collider() {
         yield return new WaitForSeconds(2.0f);
 
-        isDetectPlayer = true;
         box2D.enabled = true;
         color.a = 1f;
         sp.color = color;
+        isDetectPlayer = true;
     } 
 }

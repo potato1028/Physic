@@ -383,6 +383,7 @@
 -analyzer:"/Users/simgijun/Downloads/unity/2022.3.3f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll"
 -analyzer:"/Users/simgijun/Downloads/unity/2022.3.3f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"
 "Assets/Script/Camera/CameraMove.cs"
+"Assets/Script/Enemy/monster/FlyEnemy.cs"
 "Assets/Script/Enemy/monster/TestEnemy.cs"
 "Assets/Script/Enemy/Test_Weapon/Click_Shoot.cs"
 "Assets/Script/Enemy/Test_Weapon/Test_EnemyBullet.cs"

@@ -7,12 +7,18 @@ public class MovePlat : MonoBehaviour {
     public float moveSpeed;
     public float moveTime;
     public float stopTime;
+    public float startDelayTime = 0f;
     public Vector2 moveVector;
+    public bool isR = false;
+    public bool isU = false;
 
     [Header("Component")]
     public Rigidbody2D rb;
 
     void Start() {
+        if(isR || isU) {
+            moveSpeed *= -1;
+        }
         if(this.gameObject.tag == "LRPlat") {
             StartCoroutine(moveLR());
         }
@@ -22,6 +28,9 @@ public class MovePlat : MonoBehaviour {
     }
 
     IEnumerator moveLR() {
+        yield return new WaitForSeconds(startDelayTime);
+        startDelayTime = 0f;
+
         moveVector = new Vector2(-moveSpeed, 0);
         rb.velocity = moveVector;
 
@@ -46,6 +55,9 @@ public class MovePlat : MonoBehaviour {
     }
 
     IEnumerator moveUD() {
+        yield return new WaitForSeconds(startDelayTime);
+        startDelayTime = 0f;
+        
         moveVector = new Vector2(0, -moveSpeed);
         rb.velocity = moveVector;
 
