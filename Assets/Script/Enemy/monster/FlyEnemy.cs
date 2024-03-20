@@ -4,23 +4,23 @@ using UnityEngine;
 
 public class FlyEnemy : MonoBehaviour {
     [Header("Status")]
-    public int forwardRayCount = 14;
+    public int forwardRayCount = 9;
     public int facingIndex;
     public float forwardRayDistance = 3.5f;
-    public float backwardRayDistance = 0.8f;
-    public float attackRayDistance = 0.8f;
+    public float backwardRayDistance = 2.0f;
+    public float attackRayDistance = 3.0f;
+    public float detectRayDistance = 7.5f;
     public float angleDetect;
     public float angleDetectValue = 5f;
     public List<RaycastHit2D> forwardHitResults = new List<RaycastHit2D>();
-    public float horiaontalInput;
+    //
     public float hp = 10;
     public float moveSpeed = 2.0f;
-    public float attackDelayTime = 0.8f;
-    public float attackReadyTime = 0.2f;
+    public float attackDelayTime = 1.5f;
+    public float attackReadyTime = 0.5f;
     public float crashDamage = 1f;
     //
     public Vector2 crashPush;
-    public Vector2 roamVec;
 
     [Header("Enemy_Component")]
     public Rigidbody2D rb;
@@ -42,14 +42,15 @@ public class FlyEnemy : MonoBehaviour {
     public bool isAttacking = false;
     //
     public int roamNext;
+    public float roamAnlge;
     public float nextRaomTime;
     public float DetectTime = 5f;
+    public float moveX;
+    public float moveY;
 
     [Header("RayCast")]
     private RaycastHit2D obstacleHit;
-    private RaycastHit2D roamHit;
     private RaycastHit2D backwardHit;
-    private RaycastHit2D attackHit;
 
     [Header("GameObject")]
     public GameObject Player;
@@ -63,13 +64,13 @@ public class FlyEnemy : MonoBehaviour {
     }
 
     void Update() {
-        if(!isDetectPlayer) {
+        if (!isDetectPlayer) {
             Forward_DetectPlayer();
             Backward_DetectPlayer();
+            Roam();
         }
-        Roam();
-        Following_Player();
     }
+
 
     #region Collider
 
@@ -197,15 +198,12 @@ public class FlyEnemy : MonoBehaviour {
 
     void Roam() {
         if(isMoveAllow && !isDetectPlayer) {
-            rb.velocity = new Vector2(roamNext * moveSpeed, rb.velocity.y);
+            
         }
-        roamVec = new Vector2(rb.position.x + roamNext * 0.4f, rb.position.y);
-
-        roamHit = Physics2D.Raycast(roamVec, Vector3.down, 1, groundLayer);
         obstacleHit = Physics2D.Raycast(rb.position, Vector2.right * roamNext, 0.52f, groundLayer);
 
 
-        if(roamHit.collider == null || obstacleHit.collider != null) {
+        if(obstacleHit.collider != null) {
             roamNext *= -1;
             CancelInvoke();
             Invoke("Roam_Next", 5);
@@ -219,7 +217,7 @@ public class FlyEnemy : MonoBehaviour {
         if(roamNext < 0) {
             isFacingRight = false;
         }
-        else {
+        else if(roamNext > 0) {
             isFacingRight = true;
         }
 
@@ -271,72 +269,13 @@ public class FlyEnemy : MonoBehaviour {
     }
 
     IEnumerator Follow_Condition() {
-        Debug.Log("Follow_Conndition");
         forwardHitResults.Clear();
-        isFollowing = true;
-        isDetectPlayer = true;
-
-        yield return new WaitForSeconds(DetectTime);
-
-        if(Forward_DetectPlayer()) {
-            StartCoroutine(Follow_Condition());
-        }
-        else {
-            isFollowing = false;
-            isDetectPlayer = false;
-        }
-    }
-
-    void Following_Player() {
-        if(isFollowing) {
-            roamVec = new Vector2(rb.position.x + roamNext * 0.4f, rb.position.y);
-            roamHit = Physics2D.Raycast(roamVec, Vector3.down, 1, groundLayer);
-
-
-            if(roamHit.collider != null && isMoveAllow) {
-                Debug.Log("Move");
-                if(Player.transform.position.x <= this.transform.position.x) {
-                    rb.velocity = new Vector2(moveSpeed * -1.5f, rb.velocity.y);
-                    attackHit = Physics2D.Raycast(transform.position, -Vector2.right, attackRayDistance, playerLayer);
-                }
-                else {
-                    rb.velocity = new Vector2(moveSpeed * 1.5f, rb.velocity.y);
-                    attackHit = Physics2D.Raycast(transform.position, Vector2.right, attackRayDistance, playerLayer);
-                }
-            }
-
-            if(attackHit.collider) {
-                rb.velocity = Vector2.zero;
-                StartCoroutine(Attack_Player());
-            }
-        }   
+        yield return new WaitForSeconds(0.0f);
     }
 
     #endregion
 
     #region Attack
 
-    IEnumerator Attack_Player() {
-        isFollowing = false;
-        isMoveAllow = false;
-        isAttacking = true;
-
-        yield return new WaitForSeconds(attackReadyTime);
-
-        Debug.Log("Attack");
-
-        yield return new WaitForSeconds(attackDelayTime);
-
-        isFollowing = true;
-        isMoveAllow = true;
-        isAttacking = false;
-    }
-
     #endregion
 }
-
-
-
-
-
- 

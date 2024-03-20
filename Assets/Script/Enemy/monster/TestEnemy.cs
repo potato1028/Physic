@@ -12,7 +12,6 @@ public class TestEnemy : MonoBehaviour {
     public float angleDetect;
     public float angleDetectValue = 5f;
     public List<RaycastHit2D> forwardHitResults = new List<RaycastHit2D>();
-    public float horiaontalInput;
     public float hp = 10;
     public float moveSpeed = 2.0f;
     public float attackDelayTime = 0.8f;
@@ -66,8 +65,8 @@ public class TestEnemy : MonoBehaviour {
         if(!isDetectPlayer) {
             Forward_DetectPlayer();
             Backward_DetectPlayer();
+            Roam();
         }
-        Roam();
         Following_Player();
     }
 
@@ -213,7 +212,7 @@ public class TestEnemy : MonoBehaviour {
         if(roamNext < 0) {
             isFacingRight = false;
         }
-        else {
+        else if(roamNext > 0) {
             isFacingRight = true;
         }
 
