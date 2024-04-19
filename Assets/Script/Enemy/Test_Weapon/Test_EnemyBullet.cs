@@ -13,7 +13,7 @@ public class Test_EnemyBullet : MonoBehaviour {
         Destroy(gameObject, 0.8f);
     }
 
-    void OnTriggerEnter2D(Collider2D other) {
+    void Enter2D(Collider2D other) {
         switch(LayerMask.LayerToName(other.gameObject.layer)) {    
             case "Player" :
                 Destroy(gameObject);

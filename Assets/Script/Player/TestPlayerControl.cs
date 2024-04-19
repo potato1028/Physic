@@ -13,7 +13,7 @@ public class TestPlayerControl : MonoBehaviour {
     public float jumpForce = 12f;
     public float dashForce = 30f;
     public int groundRayCount = 9;
-    public float groundRayThickness = -0.4f;
+    public float groundRayThickness;
     public float wallRayThickness;
     //
     public float absoluteDelayTime = 5.0f;
@@ -196,9 +196,9 @@ public class TestPlayerControl : MonoBehaviour {
         wallRayThickness = -0.8f;
         groundRayThickness = -0.4f;
         for(int i = 0; i < groundRayCount; i++) {
-            groundRayVec = new Vector2(transform.position.x + groundRayThickness, transform.position.y);
-            isGroundeds[i] = Physics2D.Raycast(groundRayVec, Vector2.down, 1.01f, groundLayer);
-            Debug.DrawRay(groundRayVec, Vector2.down * 1.01f, Color.green);
+            groundRayVec = new Vector2(transform.position.x + groundRayThickness, transform.position.y - 1.0f);
+            isGroundeds[i] = Physics2D.Raycast(groundRayVec, Vector2.down, 0.01f, groundLayer);
+            Debug.DrawRay(groundRayVec, Vector2.down * 0.01f, Color.green);
             if(isGroundeds[i].collider != null) {
                 isGrounded = true;
                 break;
@@ -211,10 +211,10 @@ public class TestPlayerControl : MonoBehaviour {
 
         for(int i = 0; i < 8; i++) {
             wallRayVec = new Vector2(transform.position.x, transform.position.y + wallRayThickness);
-            isLeftWalls[i] = Physics2D.Raycast(wallRayVec, Vector2.left, 0.55f, wallLayer);
-            isRightWalls[i] = Physics2D.Raycast(wallRayVec, Vector2.right, 0.55f, wallLayer);
-            Debug.DrawRay(wallRayVec, Vector2.left * 0.55f, Color.green);
-            Debug.DrawRay(wallRayVec, Vector2.right * 0.55f, Color.green);
+            isLeftWalls[i] = Physics2D.Raycast(wallRayVec, Vector2.left, 0.52f, wallLayer);
+            isRightWalls[i] = Physics2D.Raycast(wallRayVec, Vector2.right, 0.52f, wallLayer);
+            Debug.DrawRay(wallRayVec, Vector2.left * 0.52f, Color.green);
+            Debug.DrawRay(wallRayVec, Vector2.right * 0.52f, Color.green);
             if(isLeftWalls[i]) {
                 isAttachedToLeftWall = true;
                 break;
@@ -235,7 +235,7 @@ public class TestPlayerControl : MonoBehaviour {
         }
 
         if(!isAttachedToLeftWall) {
-            CoyoteLeftVec = new Vector2(this.transform.position.x - 0.55f, this.transform.position.y);
+            CoyoteLeftVec = new Vector2(this.transform.position.x - 0.52f, this.transform.position.y);
             isCoyoteLeft = Physics2D.Raycast(CoyoteLeftVec, Vector2.down, 1.01f, groundLayer);
             Debug.DrawRay(CoyoteLeftVec, Vector2.down * 1.01f, Color.green);
             if(isCoyoteLeft) {
@@ -246,7 +246,7 @@ public class TestPlayerControl : MonoBehaviour {
             }
         }
         if(!isAttachedToRightWall) {
-            CoyoteRightVec = new Vector2(this.transform.position.x + 0.55f, this.transform.position.y);
+            CoyoteRightVec = new Vector2(this.transform.position.x + 0.52f, this.transform.position.y);
             isCoyoteRight = Physics2D.Raycast(CoyoteRightVec, Vector2.down, 1.01f, groundLayer);
             Debug.DrawRay(CoyoteRightVec, Vector2.down * 1.01f, Color.green);
             if(isCoyoteRight) {
@@ -357,6 +357,10 @@ public class TestPlayerControl : MonoBehaviour {
                 switch(other.gameObject.tag) {
                     case "Laser" :
                         Hit();
+                        break;
+                    case "Lava" :
+                        rb.velocity = Vector2.zero;
+                        StartCoroutine(moveDelay());
                         break;
                 }
                 break;
