@@ -134,13 +134,13 @@ public class TestPlayerControl : MonoBehaviour {
         Flip();
         isPlayerGround();
 
-        Absolute_Zero();
-        BlackHole_Bomb();
-        Centrifugal_Force();
+        // Absolute_Zero();
+        // BlackHole_Bomb();
+        // Centrifugal_Force();
         Dash();
-        Dry_Friction();
-        Repulsive_Push();
-        Magnetic_Change();
+        // Dry_Friction();
+        // Repulsive_Push();
+        // Magnetic_Change();
 
         UpdateText();
 

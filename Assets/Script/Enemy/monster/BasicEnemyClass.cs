@@ -8,18 +8,14 @@ namespace EnemySystem {
     public abstract class BasicEnemyClass : MonoBehaviour {
         [Header("Enemy_Status")]
         public int Hp;
-        public int attackPower;
-        public float attackDelay;
         public float moveSpeed;
-        public float chaseSpeed;
         public int facingIndex;
         public Vector2 roamVec;
         /////
-        public int forwardRayCount;
-        public float forwardRayDistance;
-        public float angleDetect;
-        public float angleDetectValue;
+        public float rayDistance;
+        public float roamInterval;
         public List<RaycastHit2D> forwardHitResults = new List<RaycastHit2D>();
+        
 
         [Header("Enemy_Component")]
         public Rigidbody2D rb;
@@ -31,9 +27,9 @@ namespace EnemySystem {
 
         [Header("Enemy_Condition")]
         public bool isMoveAllow;
-        public bool isMoving;
         public bool isDetectPlayer;
         public bool isFacingRight;
+        public bool isAttacking;
         ///
         public int roamNext;
         public float nextRaomTime;
@@ -49,20 +45,24 @@ namespace EnemySystem {
             rb = GetComponent<Rigidbody2D>();
         }
 
-        public void Start() {
+        protected virtual void Start() {
+            isMoveAllow = true;
+            isAttacking = false;
             Roam_Next();
         }
 
         public void Update() {
             Move();
+            Chase();
             PlayerDetect();
+            Attack_Range();
         }
 
         protected abstract void Move();
 
         protected abstract void Chase();
 
-        protected abstract void Attack();
+        protected abstract void Attack_Range();
 
         protected virtual void PlayerDetect() {
             if(roamNext == 0) {
@@ -77,21 +77,23 @@ namespace EnemySystem {
                 facingIndex = roamNext;
             }
 
-            for(int i = 0; i < forwardRayCount; i++) {
-                angleDetect = i * angleDetectValue;
-                Vector2 direction = new Vector2(Mathf.Cos(angleDetect * Mathf.Deg2Rad) * facingIndex, Mathf.Sin(angleDetect * Mathf.Deg2Rad));
-                RaycastHit2D[] forwardHit = Physics2D.RaycastAll(transform.position, direction, forwardRayDistance, playerLayer);
-                
-                Debug.DrawRay(transform.position, direction * forwardRayDistance, Color.red, 0.3f);
-                forwardHitResults.AddRange(forwardHit);
-            }
+            if(!isDetectPlayer) {
+                for(int i = -1; i < 2; i++) {
+                    Vector2 roamVec = new Vector2(transform.position.x - (facingIndex * 2.0f), transform.position.y + (roamInterval * i));
+                    RaycastHit2D[] forwardHit = Physics2D.RaycastAll(roamVec, Vector2.right * facingIndex, rayDistance, playerLayer);
 
-            foreach (RaycastHit2D forwardHit in forwardHitResults) {
-                if(forwardHit.collider != null) {
-                    Debug.Log("DetectPlayer");
-                    Player = forwardHit.collider.gameObject;
-                    isDetectPlayer = true;
-                    break;
+                    Debug.DrawRay(roamVec, Vector2.right * facingIndex * rayDistance, Color.red, 0.3f);
+                    forwardHitResults.AddRange(forwardHit);
+                }
+
+                foreach (RaycastHit2D forwardHit in forwardHitResults) {
+                    if(forwardHit.collider != null) {
+                        Debug.Log("DetectPlayer");
+                        Player = forwardHit.collider.gameObject;
+                        CancelInvoke("Roam_Next");
+                        isDetectPlayer = true;
+                        break;
+                    }
                 }
             }
         }
@@ -107,12 +109,12 @@ namespace EnemySystem {
                 isFacingRight = true;
             }
 
+            //here 
+            
             Invoke("Roam_Next", nextRaomTime);
         }
+        //protected virtual void Death() {}
 
-        protected virtual void Death() {}
-
-        protected virtual void Crash() {}
+        //protected virtual void Crash() {}
     }
-
 }

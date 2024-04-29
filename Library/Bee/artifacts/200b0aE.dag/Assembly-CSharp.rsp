@@ -385,6 +385,8 @@
 "Assets/Script/Camera/CameraMove.cs"
 "Assets/Script/Enemy/monster/BasicEnemy.cs"
 "Assets/Script/Enemy/monster/BasicEnemyClass.cs"
+"Assets/Script/Enemy/monster/FlyEnemy.cs"
+"Assets/Script/Enemy/monster/FlyEnemyClass.cs"
 "Assets/Script/Enemy/Test_Weapon/Click_Shoot.cs"
 "Assets/Script/Enemy/Test_Weapon/Test_EnemyBullet.cs"
 "Assets/Script/Object/Friendly_Object/MovePlat.cs"
