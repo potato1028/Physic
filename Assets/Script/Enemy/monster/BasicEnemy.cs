@@ -12,8 +12,9 @@ namespace EnemySystem {
             base.Start();
             Hp = 5;
             moveSpeed = 3;
-            rayDistance = 5f;
+            rayDistance = 3.5f;
             roamInterval = transform.localScale.y / 4f;
+            attackRayDistance = 1.5f;
         }
 
         protected override void Move() {
@@ -39,7 +40,7 @@ namespace EnemySystem {
                 RaycastHit2D chaseHit = Physics2D.Raycast(transform.position, rayDirection, chaseRayDistance, playerLayer);
                 Debug.DrawRay(transform.position, rayDirection * rayDistance, Color.green, 0.3f);
 
-                if(chaseHit.collider != null && chaseHit.collider.gameObject.layer == LayerMask.NameToLayer("Player")) {
+                if(chaseHit.collider != null && chaseHit.collider.gameObject.layer == LayerMask.NameToLayer("Player") && !Roam_Obstacle(this.transform.position, rayDirection, Player.transform.position.x)) {
                     if(Player.transform.position.x <= this.transform.position.x) {
                         rb.velocity = new Vector2(moveSpeed * -1.5f, rb.velocity.y);
                     }
@@ -54,15 +55,12 @@ namespace EnemySystem {
                     if(!IsInvoking("Roam_Next")) {
                         Invoke("Roam_Next", 2f);
                     }
-
-                    forwardHitResults.Clear();
                 }
             }
         }    
 
         protected override void Attack_Range() {
             if(isDetectPlayer && !isAttacking) {
-                float attackRayDistance = 1.5f;
                 RaycastHit2D attackHit = Physics2D.Raycast(transform.position, new Vector2(facingIndex, 0), attackRayDistance, playerLayer);
                 Debug.DrawRay(transform.position, new Vector2(facingIndex, 0) * attackRayDistance, Color.blue, 0.3f);
 

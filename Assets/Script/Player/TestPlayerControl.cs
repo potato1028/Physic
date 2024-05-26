@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System;
 
 public class TestPlayerControl : MonoBehaviour {
@@ -123,16 +124,19 @@ public class TestPlayerControl : MonoBehaviour {
 
     private bool isPaused = false;
 
+    void Awake() {
+        DontDestroyOnLoad(this.gameObject);
+    }
+
     void Start() {
+        Debug.Log("Scene Change");
         groundLayer = LayerMask.GetMask("Ground", "Wall", "Plat");
         wallLayer = LayerMask.GetMask("Ground", "Wall", "Plat");
     }
 
-
     void Update() {
         Jump();
         Flip();
-        isPlayerGround();
 
         // Absolute_Zero();
         // BlackHole_Bomb();
@@ -145,18 +149,13 @@ public class TestPlayerControl : MonoBehaviour {
         UpdateText();
 
         if(Input.GetKeyDown(KeyCode.M)) {
-            if(isPaused) {
-                Time.timeScale = 1f;
-                isPaused = false;
-            }
-            else {
-                Time.timeScale = 0f;
-                isPaused = true;
-            }
+            GamePuased();
         }
     }
 
     void FixedUpdate() {
+        isPlayerGround();
+        
         isFacingRight = transform.localScale.x > 0;
         horiaontalInput = Input.GetAxis("Horizontal");
 
@@ -915,4 +914,15 @@ public class TestPlayerControl : MonoBehaviour {
     }
 
     #endregion
+
+    public void GamePuased() {
+        if(isPaused) {
+            Time.timeScale = 1f;
+            isPaused = false;
+        }
+        else {
+            Time.timeScale = 0f;
+            isPaused = true;
+        }
+    }
 }

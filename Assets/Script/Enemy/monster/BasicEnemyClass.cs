@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,9 +15,9 @@ namespace EnemySystem {
         /////
         public float rayDistance;
         public float roamInterval;
-        public List<RaycastHit2D> forwardHitResults = new List<RaycastHit2D>();
+        //
+        public float attackRayDistance;
         
-
         [Header("Enemy_Component")]
         public Rigidbody2D rb;
 
@@ -79,28 +80,38 @@ namespace EnemySystem {
 
             if(!isDetectPlayer) {
                 for(int i = -1; i < 2; i++) {
-                    Vector2 roamVec = new Vector2(transform.position.x - (facingIndex * 2.0f), transform.position.y + (roamInterval * i));
-                    RaycastHit2D[] forwardHit = Physics2D.RaycastAll(roamVec, Vector2.right * facingIndex, rayDistance, playerLayer);
+                    Vector2 forwardRoamVec = new Vector2(transform.position.x, transform.position.y + (roamInterval * i));
+                    RaycastHit2D forwardHit = Physics2D.Raycast(forwardRoamVec, Vector2.right * facingIndex, rayDistance, playerLayer);
+                    Debug.DrawRay(forwardRoamVec, Vector2.right * facingIndex * rayDistance, Color.red, 0.3f); 
 
-                    Debug.DrawRay(roamVec, Vector2.right * facingIndex * rayDistance, Color.red, 0.3f);
-                    forwardHitResults.AddRange(forwardHit);
-                }
-
-                foreach (RaycastHit2D forwardHit in forwardHitResults) {
-                    if(forwardHit.collider != null) {
+                    if(forwardHit.collider != null && !Roam_Obstacle(forwardRoamVec, Vector2.right * facingIndex, forwardHit.point.x)) {
                         Debug.Log("DetectPlayer");
                         Player = forwardHit.collider.gameObject;
                         CancelInvoke("Roam_Next");
                         isDetectPlayer = true;
                         break;
                     }
+                    else {
+                        Debug.Log("Obstacle");
+                        isDetectPlayer = false;
+                        continue;
+                    }
+                }
+
+                Vector2 backRoamVec = new Vector2(transform.position.x, transform.position.y);
+                RaycastHit2D backwardHit = Physics2D.Raycast(backRoamVec, Vector2.left * facingIndex, 1.0f, playerLayer);
+                Debug.DrawRay(backRoamVec, Vector2.left * facingIndex * 1.0f, Color.blue, 0.3f); 
+
+                if(backwardHit.collider != null && !Roam_Obstacle(backRoamVec, Vector2.left * facingIndex, backwardHit.point.x)) {
+                    roamNext *= -1;
+                    isFacingRight = !isFacingRight;
                 }
             }
         }
 
         protected virtual void Roam_Next() {
-            roamNext = Random.Range(-1, 2);
-            nextRaomTime = Random.Range(5f, 8f);
+            roamNext = UnityEngine.Random.Range(-1, 2);
+            nextRaomTime = UnityEngine.Random.Range(5f, 8f);
 
             if(roamNext < 0) {
                 isFacingRight = false;
@@ -113,8 +124,25 @@ namespace EnemySystem {
             
             Invoke("Roam_Next", nextRaomTime);
         }
+
+        protected virtual bool Roam_Obstacle(Vector2 startPosition, Vector2 rayDirection, float playerXPoint) {
+            RaycastHit2D obstacleHit = Physics2D.Raycast(startPosition, rayDirection, rayDistance, obstacleLayer);
+            Debug.DrawRay(roamVec, rayDirection * rayDistance, Color.red, 0.3f);
+
+            if(obstacleHit.collider != null) {
+                float distanceToPlayer = Mathf.Abs(playerXPoint - startPosition.x);
+                float distanceToObstacle = Mathf.Abs(obstacleHit.point.x - startPosition.x);
+
+                if(distanceToPlayer < distanceToObstacle) return false;
+                else return true;
+            }
+            else return false;
+                    
+        }
+
         //protected virtual void Death() {}
 
         //protected virtual void Crash() {}
+
     }
 }
