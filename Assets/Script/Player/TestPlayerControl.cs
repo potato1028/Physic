@@ -6,6 +6,8 @@ using UnityEngine.SceneManagement;
 using System;
 
 public class TestPlayerControl : MonoBehaviour {
+    private static TestPlayerControl instance;
+
     [Header("Player_Status")]
     public float horiaontalInput;
     public float verticalInput;
@@ -125,7 +127,13 @@ public class TestPlayerControl : MonoBehaviour {
     private bool isPaused = false;
 
     void Awake() {
-        DontDestroyOnLoad(this.gameObject);
+        if(instance == null) {
+            instance = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
+        else if(instance != this) {
+            Destroy(this.gameObject);
+        }
     }
 
     void Start() {

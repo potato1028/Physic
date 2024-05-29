@@ -9,6 +9,10 @@ public class Cameramove : MonoBehaviour {
     public float limitMinX, limitMaxX, limitMinY, limitMaxY;
     float cameraHalfWidth, cameraHalfHeight;
 
+    private void Awake() {
+        target = GameObject.FindWithTag("Player").transform;
+    }
+
     private void Start() {
         cameraHalfWidth = Camera.main.aspect * Camera.main.orthographicSize;
         cameraHalfHeight = Camera.main.orthographicSize;

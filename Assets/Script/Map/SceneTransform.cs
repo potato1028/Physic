@@ -11,6 +11,9 @@ public class SceneTransform : MonoBehaviour {
     public CanvasGroup Fade_img;
     float fadeDuration = 1f;
 
+    private GameObject player;
+    private Vector2 spawnPosition;
+
     public static SceneTransform Instance {
         get {
             return instance;
@@ -18,7 +21,7 @@ public class SceneTransform : MonoBehaviour {
     }
     private static SceneTransform instance;
 
-    void Start() {
+    void Awake() {
         if(instance != null) {
             DestroyImmediate(this.gameObject);
             return;
@@ -41,16 +44,22 @@ public class SceneTransform : MonoBehaviour {
         })
         .OnComplete(() => {
             Fade_img.blocksRaycasts = false;
+            if(player != null) {
+                player.transform.position = spawnPosition;
+            }
         });
     }
 
     public void ChangeScene(string sceneName, GameObject Player, Vector2 SpawnPosition) {
+        player = Player;
+        spawnPosition = SpawnPosition;
+
         Fade_img.DOFade(1, fadeDuration / 2)
         .OnStart(() => {
             Fade_img.blocksRaycasts = true;
         })
         .OnComplete(() => {
-            StartCoroutine("LoadScene", sceneName);
+            StartCoroutine(LoadScene(sceneName));
         });
     }
 
@@ -79,7 +88,17 @@ public class SceneTransform : MonoBehaviour {
                 percentage = Mathf.Lerp(percentage, async.progress * 100f, past_time);
                 if(percentage >= 90) past_time = 0;
             }
-            Loading_text.text = percentage.ToString("0") + "%s";
+            Loading_text.text = percentage.ToString("0") + "%";
+
+            player.transform.position = spawnPosition;
+
+            Fade_img.DOFade(0, fadeDuration)
+            .OnStart(() => {
+                Loading.SetActive(false);
+            })
+            .OnComplete(() => {
+                Fade_img.blocksRaycasts = false;
+            });
         }
     }
 }
