@@ -130,7 +130,7 @@ namespace EnemySystem {
             
         }
 
-        protected void OnCollisionEnter2D(Collision2D other) {
+        protected virtual void OnCollisionEnter2D(Collision2D other) {
             if((obstacleLayer.value & (1 << other.gameObject.layer)) != 0 && !isDetectPlayer) {
                 CancelInvoke("Roam_Next");
                 Invoke("Roam_Next", nextRaomTime);
@@ -139,18 +139,18 @@ namespace EnemySystem {
 
                 if(randomDirection.x < 0) { //왼쪽으로 가던 중
                     if(collisionPoint.y < 0) { // 왼쪽 아래 대각선으로
-                        if(collisionPoint.x <= -0.5f) {
+                        if(collisionPoint.x < 0) {
                             randomDirection.x *= -1f;
                         }
-                        else if(collisionPoint.y < -0.5f) {
+                        else if(collisionPoint.y < 0) {
                             randomDirection.y *= -1f;
                         }
                     }
                     else if(collisionPoint.y > 0) { //왼쪽 위 대각선으로
-                        if(collisionPoint.x <= -0.5f) {
+                        if(collisionPoint.x < 0) {
                             randomDirection.x *= -1f;
                         }
-                        else if(collisionPoint.y > 0.5f) {
+                        else if(collisionPoint.y > 0) {
                             randomDirection.y *= -1f;
                         }
                     }
@@ -160,18 +160,18 @@ namespace EnemySystem {
                 }
                 else if(randomDirection.x > 0) { //오른쪽으로 가던 중
                     if(collisionPoint.y < 0) { //오른쪽 아래 대각선으로
-                        if(collisionPoint.x >= 0.5f) {
+                        if(collisionPoint.x > 0) {
                             randomDirection.x *= -1f;
                         }
-                        else if(collisionPoint.y < -0.5f) {
+                        else if(collisionPoint.y < 0) {
                             randomDirection.y *= -1f;
                         }
                     }
                     else if(collisionPoint.y > 0) { //오른쪽 위 대각선으로
-                        if(collisionPoint.x >= 0.5f) {
+                        if(collisionPoint.x > 0) {
                             randomDirection.x *= -1f;
                         }
-                        else if(collisionPoint.y >= 0.5f) {
+                        else if(collisionPoint.y >= 0) {
                             randomDirection.y *= -1f;
                         }
                     }
@@ -186,6 +186,7 @@ namespace EnemySystem {
 
             }
         }
+
         //protected virtual void Death() {}
 
         //protected virtual void Crash() {}

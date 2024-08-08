@@ -148,7 +148,7 @@ public class TestPlayerControl : MonoBehaviour {
 
         // Absolute_Zero();
         // BlackHole_Bomb();
-        // Centrifugal_Force();
+        Centrifugal_Force();
         Dash();
         // Dry_Friction();
         // Repulsive_Push();
@@ -392,6 +392,7 @@ public class TestPlayerControl : MonoBehaviour {
     }
 
     IEnumerator hitDelay() {
+        rb.velocity = Vector2.zero;
         isHitting = true;
         isHitAllow = false;
 

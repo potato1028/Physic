@@ -8,6 +8,9 @@ namespace EnemySystem {
 
     public class FlyEnemy : FlyEnemyClass {
 
+        [Header("Basic_Enemy_Status")]
+        public float attackSpeed = 8f;
+
         protected override void Start() {
             base.Start();
             Hp = 7;
@@ -22,9 +25,6 @@ namespace EnemySystem {
         protected override void Move() {
             if(isMoveAllow && !isDetectPlayer) {
                 rb.velocity = randomDirection * moveSpeed;
-            }
-            else {
-                rb.velocity = Vector2.zero;
             }
         }
 
@@ -55,7 +55,7 @@ namespace EnemySystem {
                 Debug.DrawRay(transform.position, rayDirection * attackRayDistance, Color.blue, 0.3f);
 
                 if(attackHit.collider != null && attackHit.collider.gameObject.layer == LayerMask.NameToLayer("Player")) {
-                    StartCoroutine(Attack());
+                    StartCoroutine(Attack(rayDirection));
                 }
                 else {
                     isMoveAllow = true;
@@ -63,17 +63,31 @@ namespace EnemySystem {
             }
         }
 
-        IEnumerator Attack() {
+        IEnumerator Attack(Vector2 playerPosition) {
             rb.velocity = Vector2.zero;
             isMoveAllow = false;
             isAttacking = true;
             Debug.Log("Attack Ready");
             yield return new WaitForSeconds(1.0f);
 
-            Debug.Log("Attack");
-            yield return new WaitForSeconds(1.0f);
+            rb.velocity = rayDirection * attackSpeed;
+
+            yield return new WaitForSeconds(2.0f);
 
             isAttacking = false;
+            rb.velocity = Vector2.zero;
+
+            yield return new WaitForSeconds(3f);
+        }
+
+        protected override void OnCollisionEnter2D(Collision2D other) {
+            base.OnCollisionEnter2D(other);
+            if(isAttacking && other.gameObject.layer == obstacleLayer) {
+                Debug.Log("Stop");
+                StopCoroutine(Attack(rayDirection));
+                rb.velocity = Vector2.zero;
+                isAttacking = false;
+            }
         }
     }
 }

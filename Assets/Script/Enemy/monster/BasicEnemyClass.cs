@@ -29,7 +29,6 @@ namespace EnemySystem {
         [Header("Enemy_Condition")]
         public bool isMoveAllow;
         public bool isDetectPlayer;
-        public bool isFacingRight;
         public bool isAttacking;
         ///
         public int roamNext;
@@ -37,6 +36,9 @@ namespace EnemySystem {
 
         [Header("Other_Object")]
         public GameObject Player;
+
+        [Header("Other_Component")]
+        public TestPlayerControl testPlayerControl;
 
         [Header("Enemy_ray")]
         public RaycastHit2D obstacleHit;
@@ -66,18 +68,6 @@ namespace EnemySystem {
         protected abstract void Attack_Range();
 
         protected virtual void PlayerDetect() {
-            if(roamNext == 0) {
-                if(isFacingRight) {
-                    facingIndex = 1;
-                }
-                else {
-                    facingIndex = -1;
-                }
-            }
-            else {
-                facingIndex = roamNext;
-            }
-
             if(!isDetectPlayer) {
                 for(int i = -1; i < 2; i++) {
                     Vector2 forwardRoamVec = new Vector2(transform.position.x, transform.position.y + (roamInterval * i));
@@ -87,12 +77,12 @@ namespace EnemySystem {
                     if(forwardHit.collider != null && !Roam_Obstacle(forwardRoamVec, Vector2.right * facingIndex, forwardHit.point.x)) {
                         Debug.Log("DetectPlayer");
                         Player = forwardHit.collider.gameObject;
+                        testPlayerControl = Player.GetComponent<TestPlayerControl>();
                         CancelInvoke("Roam_Next");
                         isDetectPlayer = true;
                         break;
                     }
                     else {
-                        Debug.Log("Obstacle");
                         isDetectPlayer = false;
                         continue;
                     }
@@ -104,7 +94,7 @@ namespace EnemySystem {
 
                 if(backwardHit.collider != null && !Roam_Obstacle(backRoamVec, Vector2.left * facingIndex, backwardHit.point.x)) {
                     roamNext *= -1;
-                    isFacingRight = !isFacingRight;
+                    facingIndex *= -1;
                 }
             }
         }
@@ -113,14 +103,7 @@ namespace EnemySystem {
             roamNext = UnityEngine.Random.Range(-1, 2);
             nextRaomTime = UnityEngine.Random.Range(5f, 8f);
 
-            if(roamNext < 0) {
-                isFacingRight = false;
-            }
-            else if(roamNext > 0) {
-                isFacingRight = true;
-            }
-
-            //here 
+            facingIndex = roamNext;
             
             Invoke("Roam_Next", nextRaomTime);
         }
@@ -143,6 +126,5 @@ namespace EnemySystem {
         //protected virtual void Death() {}
 
         //protected virtual void Crash() {}
-
     }
 }

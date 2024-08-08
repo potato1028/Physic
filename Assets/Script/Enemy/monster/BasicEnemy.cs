@@ -7,6 +7,8 @@ using System;
 namespace EnemySystem {
 
     public class BasicEnemy : BasicEnemyClass {
+        [Header("Basic_Enemy_Status")]
+        public float attackSpeed = 8f;
 
         protected override void Start() {
             base.Start();
@@ -14,7 +16,7 @@ namespace EnemySystem {
             moveSpeed = 3;
             rayDistance = 3.5f;
             roamInterval = transform.localScale.y / 4f;
-            attackRayDistance = 1.5f;
+            attackRayDistance = 2f;
         }
 
         protected override void Move() {
@@ -30,6 +32,7 @@ namespace EnemySystem {
 
             if(roamHit.collider == null || obstacleHit.collider != null) {
                 roamNext *= -1;
+                facingIndex = -1;
             }
         }
 
@@ -42,11 +45,15 @@ namespace EnemySystem {
 
                 if(chaseHit.collider != null && chaseHit.collider.gameObject.layer == LayerMask.NameToLayer("Player") && !Roam_Obstacle(this.transform.position, rayDirection, Player.transform.position.x)) {
                     if(Player.transform.position.x <= this.transform.position.x) {
-                        rb.velocity = new Vector2(moveSpeed * -1.5f, rb.velocity.y);
+                        StartCoroutine(delayChase(-1));
+                        facingIndex = -1;
                     }
                     else {
-                        rb.velocity = new Vector2(moveSpeed * 1.5f, rb.velocity.y);
+                        StartCoroutine(delayChase(1));
+                        facingIndex = 1;
                     }
+                    rb.velocity = new Vector2(moveSpeed * facingIndex * 1.5f, rb.velocity.y);
+                    
                 }
                 else {
                     Player = null;
@@ -73,17 +80,41 @@ namespace EnemySystem {
             }
         }
 
+        void OnCollisionEnter2D(Collision2D other) {
+            if(other.gameObject.layer == LayerMask.NameToLayer("Player")) {
+                rb.velocity = Vector2.zero;
+                rb.velocity = new Vector2(5f * facingIndex * -1f, 2f); //delay
+            }
+        }
+
         IEnumerator Attack() {
-            this.rb.velocity = Vector2.zero;
+            rb.velocity = Vector2.zero;
             isMoveAllow = false;
             isAttacking = true;
             Debug.Log("Attack Ready");
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1.0f);
 
-            Debug.Log("Attack");
-            yield return new WaitForSeconds(0.5f);
+            rb.velocity = new Vector2(facingIndex * attackSpeed, rb.velocity.y);
+
+            yield return new WaitForSeconds(1.0f);
 
             isAttacking = false;
+            rb.velocity = Vector2.zero;
+
+            yield return new WaitForSeconds(3f);
+        }
+
+        IEnumerator delayChase(int currentIndex) {
+            if(facingIndex == currentIndex) {
+                yield break;
+            }
+
+            float currentMoveSpeed = moveSpeed;
+            moveSpeed = 0f;
+
+            yield return new WaitForSeconds(0.5f);
+
+            moveSpeed = currentMoveSpeed;
         }
     }
 }
